@@ -1,4 +1,4 @@
-// Search and filter utilities
+// Search and filter utilities with treatment type name search support
 
 import type { Patient, Session, TreatmentType } from '../models';
 import { getSessionTreatmentIds } from '../models';
@@ -13,15 +13,30 @@ export interface SearchFilters {
 export function filterPatients(
   patients: Patient[],
   sessions: Session[],
-  filters: SearchFilters
+  filters: SearchFilters,
+  treatmentTypes?: TreatmentType[]
 ): Patient[] {
   return patients.filter((patient) => {
-    // Name search
+    // Name and treatment type search
     if (filters.query) {
       const query = filters.query.toLowerCase();
       const matchesName = patient.name.toLowerCase().includes(query);
       const matchesId = patient.patientId.toLowerCase().includes(query);
-      if (!matchesName && !matchesId) return false;
+      
+      // Check if query matches any treatment type in patient's sessions
+      let matchesTreatmentType = false;
+      if (treatmentTypes && treatmentTypes.length > 0) {
+        const patientSessions = sessions.filter((s) => s.patientId === patient.id);
+        matchesTreatmentType = patientSessions.some((session) => {
+          const sessionTreatmentIds = getSessionTreatmentIds(session);
+          return sessionTreatmentIds.some((treatmentId) => {
+            const treatment = treatmentTypes.find((t) => t.id === treatmentId);
+            return treatment && treatment.name.toLowerCase().includes(query);
+          });
+        });
+      }
+      
+      if (!matchesName && !matchesId && !matchesTreatmentType) return false;
     }
 
     // Treatment type filter - check if any session has any of the selected treatment types

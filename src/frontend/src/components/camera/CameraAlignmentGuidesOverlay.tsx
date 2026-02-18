@@ -1,89 +1,31 @@
-// Visual-only alignment guides overlay for camera capture (grid + crosshair)
+// Visual-only alignment guides overlay with rule-of-thirds grid and center crosshair, strictly non-interactive to avoid blocking camera controls.
 
-interface CameraAlignmentGuidesOverlayProps {
-  enabled: boolean;
-}
-
-export function CameraAlignmentGuidesOverlay({ enabled }: CameraAlignmentGuidesOverlayProps) {
-  if (!enabled) return null;
-
+export function CameraAlignmentGuidesOverlay() {
   return (
-    <div className="absolute inset-0 pointer-events-none">
-      {/* Rule of thirds grid */}
-      <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
-        {/* Vertical lines */}
-        <line
-          x1="33.33"
-          y1="0"
-          x2="33.33"
-          y2="100"
-          stroke="white"
-          strokeWidth="0.2"
-          opacity="0.5"
-        />
-        <line
-          x1="66.67"
-          y1="0"
-          x2="66.67"
-          y2="100"
-          stroke="white"
-          strokeWidth="0.2"
-          opacity="0.5"
-        />
-        {/* Horizontal lines */}
-        <line
-          x1="0"
-          y1="33.33"
-          x2="100"
-          y2="33.33"
-          stroke="white"
-          strokeWidth="0.2"
-          opacity="0.5"
-        />
-        <line
-          x1="0"
-          y1="66.67"
-          x2="100"
-          y2="66.67"
-          stroke="white"
-          strokeWidth="0.2"
-          opacity="0.5"
-        />
-      </svg>
+    <div className="absolute inset-0 pointer-events-none z-10">
+      {/* Rule of thirds - vertical lines */}
+      <div className="absolute left-1/3 top-0 bottom-0 w-px bg-white/40" />
+      <div className="absolute left-2/3 top-0 bottom-0 w-px bg-white/40" />
+
+      {/* Rule of thirds - horizontal lines */}
+      <div className="absolute top-1/3 left-0 right-0 h-px bg-white/40" />
+      <div className="absolute top-2/3 left-0 right-0 h-px bg-white/40" />
 
       {/* Center crosshair */}
-      <svg className="w-full h-full absolute inset-0" viewBox="0 0 100 100" preserveAspectRatio="none">
-        {/* Vertical center line */}
-        <line
-          x1="50"
-          y1="45"
-          x2="50"
-          y2="55"
-          stroke="white"
-          strokeWidth="0.3"
-          opacity="0.7"
-        />
-        {/* Horizontal center line */}
-        <line
-          x1="45"
-          y1="50"
-          x2="55"
-          y2="50"
-          stroke="white"
-          strokeWidth="0.3"
-          opacity="0.7"
-        />
-        {/* Center circle */}
-        <circle
-          cx="50"
-          cy="50"
-          r="2"
-          stroke="white"
-          strokeWidth="0.3"
-          fill="none"
-          opacity="0.7"
-        />
-      </svg>
+      <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
+        {/* Vertical line */}
+        <div className="absolute left-1/2 -translate-x-1/2 w-px h-12 bg-white/60" style={{ top: '-24px' }} />
+        {/* Horizontal line */}
+        <div className="absolute top-1/2 -translate-y-1/2 h-px w-12 bg-white/60" style={{ left: '-24px' }} />
+        {/* Center dot */}
+        <div className="w-2 h-2 rounded-full bg-white/80 -translate-x-1/2 -translate-y-1/2 absolute left-0 top-0" />
+      </div>
+
+      {/* Corner markers for framing */}
+      <div className="absolute top-4 left-4 w-8 h-8 border-l-2 border-t-2 border-white/50" />
+      <div className="absolute top-4 right-4 w-8 h-8 border-r-2 border-t-2 border-white/50" />
+      <div className="absolute bottom-4 left-4 w-8 h-8 border-l-2 border-b-2 border-white/50" />
+      <div className="absolute bottom-4 right-4 w-8 h-8 border-r-2 border-b-2 border-white/50" />
     </div>
   );
 }

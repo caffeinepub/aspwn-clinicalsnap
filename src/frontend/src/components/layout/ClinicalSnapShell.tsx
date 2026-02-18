@@ -41,12 +41,17 @@ export function ClinicalSnapShell() {
     setVoiceMemoSessionId(sessionId);
   };
 
-  const handleOpenCompare = (sessionId: string) => {
+  const handleOpenBeforeAfter = (sessionId: string) => {
     if (!sessionId) {
       toast.error('Please select a session to compare photos');
       return;
     }
     setCompareSessionId(sessionId);
+  };
+
+  const handleOpenPhotoViewer = (photoId: string) => {
+    // Photo viewer is handled by selectedPhotoId in store
+    console.log('Open photo viewer:', photoId);
   };
 
   return (
@@ -92,9 +97,11 @@ export function ClinicalSnapShell() {
           {/* Timeline/viewer */}
           <ResizablePanel defaultSize={75} minSize={60}>
             <SessionTimelinePanel
+              patientId={selectedPatientId || ''}
               onOpenCamera={handleOpenCamera}
               onOpenVoiceMemo={handleOpenVoiceMemo}
-              onOpenCompare={handleOpenCompare}
+              onOpenPhotoViewer={handleOpenPhotoViewer}
+              onOpenBeforeAfter={handleOpenBeforeAfter}
             />
           </ResizablePanel>
         </ResizablePanelGroup>

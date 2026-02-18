@@ -1,4 +1,4 @@
-// Global app state management using Zustand with immediate state updates after IndexedDB writes
+// Global app state management using Zustand with MIME-aware voice memo support, immediate state updates after IndexedDB writes, and photo update action for local-only edits
 
 import { create } from 'zustand';
 import type {
@@ -52,6 +52,7 @@ interface AppState {
 
   // Photo actions
   createPhoto: (photo: Omit<Photo, 'id'>) => Promise<Photo>;
+  updatePhoto: (id: string, updates: Partial<Photo>) => Promise<void>;
   deletePhoto: (id: string) => Promise<void>;
   selectPhoto: (id: string | null) => void;
 
@@ -267,6 +268,16 @@ export const useAppStore = create<AppState>((set, get) => ({
     await db.put('photos', photo);
     set((state) => ({ photos: [...state.photos, photo] }));
     return photo;
+  },
+
+  updatePhoto: async (id, updates) => {
+    const photo = get().photos.find((p) => p.id === id);
+    if (!photo) return;
+    const updated = { ...photo, ...updates };
+    await db.put('photos', updated);
+    set((state) => ({
+      photos: state.photos.map((p) => (p.id === id ? updated : p)),
+    }));
   },
 
   deletePhoto: async (id) => {

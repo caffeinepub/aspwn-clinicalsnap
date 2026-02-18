@@ -1,94 +1,49 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-18T12:19:29.378Z",
+  "generatedAt": "2026-02-18T15:59:09.317Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 5,
-    "implemented": 5,
+    "total": 3,
+    "implemented": 3,
     "items": [
       {
-        "id": "REQ-37",
-        "summary": "Add optional alignment guides (composition overlays) to the in-app camera capture UI so clinicians can keep framing consistent between shots.",
+        "id": "REQ-83",
+        "summary": "Add an Edit Patient action to the PatientListPanel so users can open the PatientEditorDialog in edit mode for the selected patient, allowing modification of patient name, patient ID, date of birth, and treatment history notes.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/components/camera/CameraCapturePanel.tsx",
-          "frontend/src/components/camera/CameraAlignmentGuidesOverlay.tsx",
-          "frontend/src/index.css"
+          "frontend/src/components/patients/PatientListPanel.tsx",
+          "frontend/src/components/patients/PatientEditorDialog.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/components/camera/CameraCapturePanel.tsx",
-          "frontend/src/components/camera/CameraAlignmentGuidesOverlay.tsx"
+          "frontend/src/components/patients/PatientListPanel.tsx"
         ]
       },
       {
-        "id": "REQ-38",
-        "summary": "Add an optional before/after “ghost overlay” alignment aid that helps match framing by overlaying a chosen reference photo semi-transparently during camera capture.",
+        "id": "REQ-84",
+        "summary": "Add a Delete Patient action to the PatientListPanel that triggers the PatientDeleteConfirmDialog and, upon confirmation, removes the patient and all associated sessions, photos, annotations, pairings, and voice memos from IndexedDB.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/components/camera/CameraCapturePanel.tsx",
-          "frontend/src/components/camera/GhostOverlayPickerDialog.tsx",
-          "frontend/src/components/photos/PhotoThumbnailGrid.tsx"
+          "frontend/src/components/patients/PatientListPanel.tsx",
+          "frontend/src/components/patients/PatientDeleteConfirmDialog.tsx",
+          "frontend/src/lib/state/useAppStore.ts"
         ],
         "matchedFiles": [
-          "frontend/src/components/camera/CameraCapturePanel.tsx",
-          "frontend/src/components/camera/GhostOverlayPickerDialog.tsx",
-          "frontend/src/components/photos/PhotoThumbnailGrid.tsx"
+          "frontend/src/components/patients/PatientListPanel.tsx"
         ]
       },
       {
-        "id": "REQ-39",
-        "summary": "Add standard clinical view templates/presets (e.g., frontal, 45°, occlusal) to guide capture and organization, including persisting the selected view template on each captured/imported photo.",
+        "id": "REQ-85",
+        "summary": "Ensure the Edit and Delete actions in the PatientListPanel are touch-friendly and suitable for iPad interaction, with clear labeling and adequate touch target sizes.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/lib/models.ts",
-          "frontend/src/components/camera/CameraCapturePanel.tsx",
-          "frontend/src/components/photos/SessionPhotoImportButton.tsx",
-          "frontend/src/components/photos/PhotoThumbnailGrid.tsx",
-          "frontend/src/components/photos/PhotoViewerOverlay.tsx",
-          "frontend/src/lib/media/photoStorage.ts"
+          "frontend/src/components/patients/PatientListPanel.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/lib/models.ts",
-          "frontend/src/components/camera/CameraCapturePanel.tsx",
-          "frontend/src/components/photos/SessionPhotoImportButton.tsx",
-          "frontend/src/components/photos/PhotoThumbnailGrid.tsx",
-          "frontend/src/components/photos/PhotoViewerOverlay.tsx",
-          "frontend/src/lib/media/photoStorage.ts"
-        ]
-      },
-      {
-        "id": "REQ-40",
-        "summary": "Add quick-preset annotation stamps for faster markups, including at least arrows, margins, and prep lines, usable within the full-screen photo viewer annotation experience.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/lib/models.ts",
-          "frontend/src/components/photos/PhotoAnnotationToolbar.tsx",
-          "frontend/src/components/photos/PhotoAnnotationCanvas.tsx",
-          "frontend/src/components/photos/PhotoViewerOverlay.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/lib/models.ts",
-          "frontend/src/components/photos/PhotoAnnotationToolbar.tsx",
-          "frontend/src/components/photos/PhotoAnnotationCanvas.tsx",
-          "frontend/src/components/photos/PhotoViewerOverlay.tsx"
-        ]
-      },
-      {
-        "id": "REQ-41",
-        "summary": "Add a simple client-side export-to-PDF for session photos that includes clinic branding, producing a downloadable branded PDF without uploading photos to the backend.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/package.json",
-          "frontend/src/lib/export/sessionPdfExport.ts",
-          "frontend/src/components/sessions/SessionTimelinePanel.tsx",
-          "frontend/src/components/settings/BrandingSettingsPanel.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/lib/export/sessionPdfExport.ts"
+          "frontend/src/components/patients/PatientListPanel.tsx"
         ]
       }
     ]
@@ -98,18 +53,7 @@
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/src/components/camera/CameraAlignmentGuidesOverlay.tsx",
-    "frontend/src/components/camera/CameraCapturePanel.tsx",
-    "frontend/src/components/camera/GhostOverlayPickerDialog.tsx",
-    "frontend/src/components/photos/PhotoAnnotationCanvas.tsx",
-    "frontend/src/components/photos/PhotoAnnotationToolbar.tsx",
-    "frontend/src/components/photos/PhotoThumbnailGrid.tsx",
-    "frontend/src/components/photos/PhotoViewerOverlay.tsx",
-    "frontend/src/components/photos/SessionPhotoImportButton.tsx",
-    "frontend/src/components/viewer/SessionTimelinePanel.tsx",
-    "frontend/src/lib/export/sessionPdfExport.ts",
-    "frontend/src/lib/media/photoStorage.ts",
-    "frontend/src/lib/models.ts",
+    "frontend/src/components/patients/PatientListPanel.tsx",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

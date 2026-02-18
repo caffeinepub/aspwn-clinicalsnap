@@ -1,4 +1,4 @@
-// Photo import button for adding existing images to a session with view template assignment
+// Photo import button with robust iPad compatibility, cancellation detection, clear error feedback, and view template selection for imported photos
 
 import { useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
@@ -6,15 +6,16 @@ import { Upload } from 'lucide-react';
 import { useAppStore } from '@/lib/state/useAppStore';
 import { captureFileToPhoto } from '@/lib/media/photoStorage';
 import { toast } from 'sonner';
-import { VIEW_TEMPLATES } from '@/lib/models';
+import { logImportDiagnostic } from '@/lib/media/cameraDiagnostics';
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
-  DialogTitle,
   DialogDescription,
   DialogFooter,
+  DialogHeader,
+  DialogTitle,
 } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
 import {
   Select,
   SelectContent,
@@ -22,140 +23,251 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Label } from '@/components/ui/label';
+import { VIEW_TEMPLATES } from '@/lib/models';
 
 interface SessionPhotoImportButtonProps {
   sessionId: string;
   patientId: string;
-  variant?: 'default' | 'ghost' | 'outline';
-  size?: 'default' | 'sm' | 'lg' | 'icon';
-  className?: string;
+  disabled?: boolean;
 }
 
 export function SessionPhotoImportButton({
   sessionId,
   patientId,
-  variant = 'ghost',
-  size = 'sm',
-  className,
+  disabled,
 }: SessionPhotoImportButtonProps) {
   const { createPhoto } = useAppStore();
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
   const [showTemplateDialog, setShowTemplateDialog] = useState(false);
-  const [selectedViewTemplate, setSelectedViewTemplate] = useState<string>('');
-  const [pendingFiles, setPendingFiles] = useState<File[]>([]);
+  const [selectedTemplate, setSelectedTemplate] = useState<string>('none');
+  const [pendingFiles, setPendingFiles] = useState<FileList | null>(null);
+  const importStartTimeRef = useRef<number>(0);
+  const windowFocusTimeoutRef = useRef<number | null>(null);
+
+  // Check if patient/session are valid
+  const hasValidContext = Boolean(patientId && sessionId);
 
   const handleImportClick = () => {
-    fileInputRef.current?.click();
+    if (!hasValidContext) {
+      const errorMsg = 'Please select a patient and session before importing photos.';
+      toast.error(errorMsg);
+      logImportDiagnostic('error', {
+        message: 'Import blocked: missing patient or session',
+      });
+      return;
+    }
+
+    if (inputRef.current) {
+      // Reset input to allow re-selection of same files
+      inputRef.current.value = '';
+      importStartTimeRef.current = Date.now();
+      
+      logImportDiagnostic('initiated');
+
+      inputRef.current.click();
+
+      // Set up cancellation detection for iPad Safari
+      // If user returns focus without selecting files, treat as cancel
+      if (windowFocusTimeoutRef.current !== null) {
+        clearTimeout(windowFocusTimeoutRef.current);
+      }
+
+      const handleWindowFocus = () => {
+        windowFocusTimeoutRef.current = window.setTimeout(() => {
+          if (!isProcessing && importStartTimeRef.current > 0) {
+            const elapsed = Date.now() - importStartTimeRef.current;
+            // If focus returns quickly (< 500ms) or after a while without processing, likely canceled
+            if (elapsed < 500 || elapsed > 1000) {
+              logImportDiagnostic('canceled', {
+                message: 'Import likely canceled by user (focus returned without file selection)',
+                elapsedMs: elapsed,
+              });
+              importStartTimeRef.current = 0;
+            }
+          }
+          window.removeEventListener('focus', handleWindowFocus);
+        }, 300);
+      };
+
+      window.addEventListener('focus', handleWindowFocus, { once: true });
+    }
   };
 
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
-    if (!files || files.length === 0) return;
-
-    const fileArray = Array.from(files).filter((f) => f.type.startsWith('image/'));
     
-    if (fileArray.length === 0) {
-      toast.error('No valid image files selected');
+    if (!files || files.length === 0) {
+      logImportDiagnostic('canceled', {
+        message: 'No files selected',
+      });
+      importStartTimeRef.current = 0;
+      return;
+    }
+
+    if (!hasValidContext) {
+      toast.error('Cannot import: patient or session not selected');
+      logImportDiagnostic('error', {
+        message: 'Import blocked during processing: missing patient or session',
+      });
+      importStartTimeRef.current = 0;
       return;
     }
 
     // Show template selection dialog
-    setPendingFiles(fileArray);
-    setSelectedViewTemplate('');
+    setPendingFiles(files);
+    setSelectedTemplate('none');
     setShowTemplateDialog(true);
+  };
 
-    // Reset input
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
+  const handleTemplateConfirm = async () => {
+    if (!pendingFiles || !hasValidContext) {
+      setShowTemplateDialog(false);
+      setPendingFiles(null);
+      return;
+    }
+
+    setShowTemplateDialog(false);
+    setIsProcessing(true);
+
+    const viewTemplate = selectedTemplate === 'none' ? undefined : selectedTemplate;
+
+    logImportDiagnostic('initiated', {
+      fileCount: pendingFiles.length,
+      mimeTypes: Array.from(pendingFiles).map(f => f.type),
+      hasViewTemplate: Boolean(viewTemplate),
+    });
+
+    let successCount = 0;
+    let failCount = 0;
+    const errors: string[] = [];
+
+    try {
+      for (let i = 0; i < pendingFiles.length; i++) {
+        const file = pendingFiles[i];
+        
+        try {
+          const photoData = await captureFileToPhoto(file, sessionId, patientId);
+          await createPhoto({
+            ...photoData,
+            sessionId,
+            patientId,
+            capturedAt: photoData.timestamp,
+            viewTemplate,
+          });
+          
+          successCount++;
+        } catch (err) {
+          failCount++;
+          const errorMsg = err instanceof Error ? err.message : 'Unknown error';
+          errors.push(`File ${i + 1}: ${errorMsg}`);
+          
+          console.error(`Failed to import file ${i + 1}:`, err);
+        }
+      }
+
+      // Show results
+      if (successCount > 0 && failCount === 0) {
+        toast.success(`Successfully imported ${successCount} photo${successCount > 1 ? 's' : ''}`);
+        logImportDiagnostic('success', {
+          successCount,
+          failCount,
+        });
+      } else if (successCount > 0 && failCount > 0) {
+        toast.warning(
+          `Imported ${successCount} photo${successCount > 1 ? 's' : ''}, ${failCount} failed. ${errors[0] || 'Check console for details.'}`
+        );
+        logImportDiagnostic('error', {
+          successCount,
+          failCount,
+          firstError: errors[0],
+        });
+      } else {
+        toast.error(`Failed to import photos. ${errors[0] || 'Please check the file format and try again.'}`);
+        logImportDiagnostic('error', {
+          failCount,
+          firstError: errors[0],
+        });
+      }
+    } catch (err) {
+      console.error('Import error:', err);
+      toast.error('An error occurred during import. Please try again.');
+      
+      logImportDiagnostic('error', {
+        error: String(err),
+      });
+    } finally {
+      setIsProcessing(false);
+      setPendingFiles(null);
+      importStartTimeRef.current = 0;
+      
+      // Clear any pending focus timeout
+      if (windowFocusTimeoutRef.current !== null) {
+        clearTimeout(windowFocusTimeoutRef.current);
+        windowFocusTimeoutRef.current = null;
+      }
     }
   };
 
-  const handleImportWithTemplate = async () => {
+  const handleTemplateCancel = () => {
     setShowTemplateDialog(false);
+    setPendingFiles(null);
+    importStartTimeRef.current = 0;
     
-    let successCount = 0;
-    let failCount = 0;
-
-    // Process files sequentially
-    for (const file of pendingFiles) {
-      try {
-        const photoData = await captureFileToPhoto(
-          file,
-          sessionId,
-          patientId,
-          selectedViewTemplate || undefined
-        );
-        await createPhoto({
-          ...photoData,
-          sessionId,
-          patientId,
-        });
-        successCount++;
-      } catch (err) {
-        console.error(`Failed to import ${file.name}:`, err);
-        failCount++;
-      }
-    }
-
-    setPendingFiles([]);
-
-    // Show feedback
-    if (successCount > 0 && failCount === 0) {
-      toast.success(
-        successCount === 1
-          ? 'Photo imported successfully'
-          : `${successCount} photos imported successfully`
-      );
-    } else if (successCount > 0 && failCount > 0) {
-      toast.warning(
-        `${successCount} photo${successCount === 1 ? '' : 's'} imported, ${failCount} failed`
-      );
-    } else if (failCount > 0) {
-      toast.error('Failed to import photos. Please try again with valid image files.');
-    }
+    logImportDiagnostic('canceled', {
+      message: 'User canceled view template selection',
+    });
   };
 
   return (
     <>
       <Button
-        variant={variant}
-        size={size}
         onClick={handleImportClick}
-        className={className}
-        title="Add photos from device"
+        disabled={disabled || isProcessing || !hasValidContext}
+        variant="outline"
+        size="sm"
+        className="touch-target"
       >
-        <Upload className="w-4 h-4" />
+        {isProcessing ? (
+          <>
+            <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin mr-2" />
+            Importing...
+          </>
+        ) : (
+          <>
+            <Upload className="w-4 h-4 mr-2" />
+            Import
+          </>
+        )}
       </Button>
       <input
-        ref={fileInputRef}
+        ref={inputRef}
         type="file"
         accept="image/*"
         multiple
         onChange={handleFileChange}
         className="hidden"
-        aria-label="Import photos"
       />
 
       {/* View template selection dialog */}
       <Dialog open={showTemplateDialog} onOpenChange={setShowTemplateDialog}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Assign View Template</DialogTitle>
+            <DialogTitle>Select View Template</DialogTitle>
             <DialogDescription>
-              Optionally assign a view template to the imported photo{pendingFiles.length > 1 ? 's' : ''}
+              Choose a view template to apply to all imported photos, or select "None".
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label>View Template (Optional)</Label>
-              <Select value={selectedViewTemplate} onValueChange={setSelectedViewTemplate}>
-                <SelectTrigger>
-                  <SelectValue placeholder="No template" />
+              <Label htmlFor="import-view-template">View Template</Label>
+              <Select value={selectedTemplate} onValueChange={setSelectedTemplate}>
+                <SelectTrigger id="import-view-template" className="touch-target">
+                  <SelectValue placeholder="Select a view template" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">No template</SelectItem>
+                  <SelectItem value="none">None</SelectItem>
                   {VIEW_TEMPLATES.map((template) => (
                     <SelectItem key={template} value={template}>
                       {template}
@@ -164,17 +276,13 @@ export function SessionPhotoImportButton({
                 </SelectContent>
               </Select>
             </div>
-
-            <p className="text-sm text-muted-foreground">
-              Importing {pendingFiles.length} photo{pendingFiles.length > 1 ? 's' : ''}
-            </p>
           </div>
 
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowTemplateDialog(false)}>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button variant="outline" onClick={handleTemplateCancel} className="touch-target">
               Cancel
             </Button>
-            <Button onClick={handleImportWithTemplate}>
+            <Button onClick={handleTemplateConfirm} className="touch-target">
               Import
             </Button>
           </DialogFooter>

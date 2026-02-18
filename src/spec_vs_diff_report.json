@@ -1,75 +1,14 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-18T12:19:29.374Z",
-  "summary": "REQ-37/38/39/40 appear implemented in the camera capture UI, photo model/persistence, and annotation UI (alignment guides overlay, ghost overlay picker + opacity, view templates with badges, and stamp tools with undo/delete). REQ-41 (branded client-side PDF export) is not implemented; the diff summary explicitly notes the PDF export feature was removed due to a missing dependency.",
-  "missing_requirements": [
-    {
-      "id": "REQ-41",
-      "requirement": "Add a simple client-side export-to-PDF for session photos that includes clinic branding, producing a downloadable branded PDF without uploading photos to the backend.",
-      "reason": "The diff summary indicates the session timeline panel removed the PDF export feature due to a missing jsPDF dependency, and no UI action/wiring for \"Export to PDF\" is evidenced. Although a new export module file was added, the changes shown do not demonstrate an end-to-end export action in the session workflow with branding and error handling.",
-      "evidence": [
-        "frontend-file-summaries.txt",
-        "frontend/src/components/viewer/SessionTimelinePanel.tsx",
-        "frontend/src/lib/export/sessionPdfExport.ts"
-      ]
-    }
-  ],
-  "hallucinated_features": [
-    {
-      "description": "Multi-select treatment type support with IndexedDB migration (treatmentTypeId -> treatmentTypeIds) and related filtering updates.",
-      "reason": "Not requested by REQ-37 through REQ-41; this is additional functionality unrelated to capture aids, view templates, stamps, or PDF export.",
-      "evidence": [
-        "frontend-file-summaries.txt",
-        "frontend/src/lib/storage/indexedDb.ts",
-        "frontend/src/lib/storage/migrations.ts",
-        "frontend/src/lib/state/useAppStore.ts",
-        "frontend/src/lib/search/filtering.ts",
-        "frontend/src/components/sessions/SessionEditorDialog.tsx"
-      ]
-    },
-    {
-      "description": "PIN lock / privacy security features (PIN hashing, lock screen, auto-lock manager).",
-      "reason": "Not requested in the BuildRequest; added as extra security functionality.",
-      "evidence": [
-        "frontend-file-summaries.txt",
-        "frontend/src/lib/security/pinLock.ts",
-        "frontend/src/components/security/PinLockScreen.tsx"
-      ]
-    },
-    {
-      "description": "Voice memo recording/playback feature additions/updates.",
-      "reason": "Not requested by the BuildRequest scope (REQ-37..REQ-41).",
-      "evidence": [
-        "frontend-file-summaries.txt",
-        "frontend/src/lib/media/audioMemo.ts",
-        "frontend/src/components/voice/VoiceMemoPanel.tsx"
-      ]
-    },
-    {
-      "description": "Global CSS palette and new touch-target utility additions.",
-      "reason": "Not explicitly requested by the BuildRequest requirements/constraints; appears as unrelated UI styling work.",
-      "evidence": [
-        "frontend-file-summaries.txt",
-        "frontend/src/index.css"
-      ]
-    }
-  ],
-  "confidence": 0.78,
+  "generatedAt": "2026-02-18T15:59:09.312Z",
+  "summary": "The diff implements REQ-83, REQ-84, and REQ-85 by adding Edit and Delete actions to PatientListPanel with touch-friendly controls. Edit opens PatientEditorDialog in edit mode, Delete triggers PatientDeleteConfirmDialog with cascading deletion handled by deletePatient store action. Touch targets are 44x44 points with clear icon labels (Pencil, Trash2). All acceptance criteria appear satisfied based on the available diff evidence.",
+  "missing_requirements": [],
+  "hallucinated_features": [],
+  "confidence": 0.85,
   "changed_files": [
     "frontend-file-summaries.txt",
-    "frontend/src/components/camera/CameraAlignmentGuidesOverlay.tsx",
-    "frontend/src/components/camera/CameraCapturePanel.tsx",
-    "frontend/src/components/camera/GhostOverlayPickerDialog.tsx",
-    "frontend/src/components/photos/PhotoAnnotationCanvas.tsx",
-    "frontend/src/components/photos/PhotoAnnotationToolbar.tsx",
-    "frontend/src/components/photos/PhotoThumbnailGrid.tsx",
-    "frontend/src/components/photos/PhotoViewerOverlay.tsx",
-    "frontend/src/components/photos/SessionPhotoImportButton.tsx",
-    "frontend/src/components/viewer/SessionTimelinePanel.tsx",
-    "frontend/src/lib/export/sessionPdfExport.ts",
-    "frontend/src/lib/media/photoStorage.ts",
-    "frontend/src/lib/models.ts",
+    "frontend/src/components/patients/PatientListPanel.tsx",
     "project_state.json"
   ]
 }

@@ -1,139 +1,74 @@
 {
   "kind": "build_request",
-  "title": "Add capture alignment aids, view templates, annotation stamps, and branded PDF export",
-  "projectName": "Aspen Clinic Snap",
+  "title": "Add edit and delete options for patient profiles",
   "priority": "normal",
   "requirements": [
     {
-      "id": "REQ-37",
-      "text": "Add optional alignment guides (composition overlays) to the in-app camera capture UI so clinicians can keep framing consistent between shots.",
+      "id": "REQ-83",
+      "text": "Add an Edit Patient action to the PatientListPanel so users can open the PatientEditorDialog in edit mode for the selected patient, allowing modification of patient name, patient ID, date of birth, and treatment history notes.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-4",
-          "msg-6"
+          "msg-user-final"
         ],
         "quotes": [
-          "• Alignment guides during photo capture so angles stay consistent",
-          "You could try incorporating the features you mentioned be by one"
+          "add an option to edit and delete a patient name once added"
         ]
       },
       "acceptanceCriteria": [
-        "When the camera is active, the capture UI provides a clearly labeled control (e.g., \"Guides\") to toggle alignment guides on/off.",
-        "When enabled, the camera preview shows non-intrusive overlays suitable for dental photography (e.g., rule-of-thirds grid + center crosshair).",
-        "Alignment guides do not appear in the saved photo data; they are visual overlays only.",
-        "The toggle state is touch-friendly and does not interfere with capture, camera flip, or close actions."
+        "The PatientListPanel displays an Edit action (button or menu item) for each patient entry",
+        "Tapping Edit opens the PatientEditorDialog pre-populated with the patient's current data",
+        "Changes to patient name, ID, DOB, or treatment history can be saved and persist to IndexedDB",
+        "The patient list updates immediately after saving edits to reflect the new patient name"
       ]
     },
     {
-      "id": "REQ-38",
-      "text": "Add an optional before/after “ghost overlay” alignment aid that helps match framing by overlaying a chosen reference photo semi-transparently during camera capture.",
+      "id": "REQ-84",
+      "text": "Add a Delete Patient action to the PatientListPanel that triggers the PatientDeleteConfirmDialog and, upon confirmation, removes the patient and all associated sessions, photos, annotations, pairings, and voice memos from IndexedDB.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-4",
-          "msg-6"
+          "msg-user-final"
         ],
         "quotes": [
-          "• A “ghost overlay” feature for before/after alignment",
-          "You could try incorporating the features you mentioned be by one"
+          "add an option to edit and delete a patient name once added"
         ]
       },
       "acceptanceCriteria": [
-        "From the camera capture experience (or immediately before entering it), the user can select a reference photo from the active session to use as the ghost overlay.",
-        "When enabled, the camera preview shows the reference photo aligned to the preview with an opacity slider (e.g., 0–100%).",
-        "The user can turn the ghost overlay off and/or change the reference photo without leaving the capture experience.",
-        "The ghost overlay is visual-only and is not baked into saved photos."
+        "The PatientListPanel displays a Delete action (button or menu item) for each patient entry",
+        "Tapping Delete shows the PatientDeleteConfirmDialog with a clear warning about permanent data removal",
+        "Confirming deletion removes the patient and cascades deletion to all related sessions, photos, annotations, pairings, and voice memos",
+        "The patient list updates immediately after deletion and no longer shows the deleted patient",
+        "If the deleted patient was currently selected, the UI clears the selection or selects another patient"
       ]
     },
     {
-      "id": "REQ-39",
-      "text": "Add standard clinical view templates/presets (e.g., frontal, 45°, occlusal) to guide capture and organization, including persisting the selected view template on each captured/imported photo.",
+      "id": "REQ-85",
+      "text": "Ensure the Edit and Delete actions in the PatientListPanel are touch-friendly and suitable for iPad interaction, with clear labeling and adequate touch target sizes.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-4",
-          "msg-6"
-        ],
-        "quotes": [
-          "• Standard view templates (frontal, 45°, occlusal etc.)",
-          "You could try incorporating the features you mentioned be by one"
+          "msg-user-final"
         ]
       },
       "acceptanceCriteria": [
-        "The camera capture UI provides a touch-friendly way to pick a view template from a small default list (minimum: Frontal, Left 45°, Right 45°, Occlusal).",
-        "Each captured photo persists the chosen view template value so it is available after reload (IndexedDB persistence).",
-        "Imported photos added to a session can optionally be assigned a view template during import (either per-import batch selection or per-photo selection), and that choice persists after reload.",
-        "The session photo grid and/or full-screen photo viewer displays the photo’s view template label in English when present."
-      ]
-    },
-    {
-      "id": "REQ-40",
-      "text": "Add quick-preset annotation stamps for faster markups, including at least arrows, margins, and prep lines, usable within the full-screen photo viewer annotation experience.",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-4",
-          "msg-6"
-        ],
-        "quotes": [
-          "• Quick‑preset annotation stamps (arrows, margins, prep lines)",
-          "You could try incorporating the features you mentioned be by one"
-        ]
-      },
-      "acceptanceCriteria": [
-        "The annotation toolbar includes a clearly labeled \"Stamps\" tool/mode that exposes a small set of preset stamps (minimum: Arrow, Margin line, Prep line).",
-        "Tapping a stamp preset and then tapping/dragging on the photo places the stamp reliably and persistently on the photo (saved to IndexedDB and restored after reload).",
-        "Users can remove a stamp annotation using an existing quick correction workflow (e.g., undo last annotation) without clearing all annotations.",
-        "All stamp-related user-facing labels and tooltips are in English."
-      ]
-    },
-    {
-      "id": "REQ-41",
-      "text": "Add a simple client-side export-to-PDF for session photos that includes clinic branding, producing a downloadable branded PDF without uploading photos to the backend.",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-4",
-          "msg-6"
-        ],
-        "quotes": [
-          "• A simple export-to-PDF for session photos with your clinic branding",
-          "You could try incorporating the features you mentioned be by one"
-        ]
-      },
-      "acceptanceCriteria": [
-        "From the session workflow, the user can trigger an \"Export to PDF\" action for the currently selected session.",
-        "The generated PDF includes (at minimum) the clinic name and (if configured) the clinic logo from Branding Settings, plus the session title/date in English.",
-        "The PDF includes the session’s photos (at least thumbnails or appropriately scaled images) in a readable layout suitable for iPad viewing/printing.",
-        "Export is performed fully on-device/in-browser; no photo data is sent to the Motoko backend during export.",
-        "If export fails, the user sees an English error message and can try again."
+        "Edit and Delete buttons/menu items have touch target sizes of at least 44x44 points",
+        "Actions are clearly labeled with text or universally recognizable icons",
+        "Actions are accessible without requiring precise tapping or nested menus"
       ]
     }
   ],
   "constraints": [
-    "Do not store or upload patient photos to the backend; all media must remain local-only unless explicitly exported by the user.",
-    "Respect the single-actor backend architecture; no backend changes are required for these features.",
-    "Do not modify any files under frontend/src/components/ui or other immutablePaths; compose existing UI components instead.",
-    "Use English for all user-facing text."
+    "Do not modify backend/main.mo or any immutable frontend paths (useInternetIdentity, useActor, main.tsx, components/ui/*)",
+    "Patient deletion must cascade to all related entities without leaving orphaned data in IndexedDB"
   ],
   "nonGoals": [
-    "Implementing third-party sharing integrations (e.g., WhatsApp API, email providers) beyond browser-native download/share capabilities.",
-    "Adding real-time collaboration or syncing across devices.",
-    "Building a backend media storage service."
+    "Batch patient deletion",
+    "Undo functionality for patient deletion",
+    "Export patient data before deletion"
   ],
   "imageRequirements": {
     "required": [],
     "edits": []
-  },
-  "userProfileUpdate": {
-    "goalsToAdd": [],
-    "goalsToRemove": [],
-    "preferencesToAdd": [],
-    "preferencesToRemove": [],
-    "miscToAdd": [],
-    "miscToRemove": [],
-    "fieldsToSet": {},
-    "fieldsToDelete": []
   }
 }

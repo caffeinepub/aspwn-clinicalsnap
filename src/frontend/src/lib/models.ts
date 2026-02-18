@@ -100,6 +100,7 @@ export interface VoiceMemo {
   sessionId: string;
   audioData: Uint8Array;
   duration: number; // seconds
+  mimeType: string; // Audio MIME type (e.g., 'audio/webm', 'audio/mp4', 'audio/mpeg')
   createdAt: number;
 }
 

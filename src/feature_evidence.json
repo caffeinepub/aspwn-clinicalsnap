@@ -2,11 +2,10 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-add-optional-alignment-guides-composition-overlays-to-the-in-app-camera-capture-ui-so-clinicians-can-keep-framing-consistent-between-shots",
-      "featureTitle": "Add optional alignment guides (composition overlays) to the in-app camera capture UI so clinicians can keep framing consistent between shots.",
+      "featureId": "feature-add-an-edit-patient-action-to-the-patientlistpanel-so-users-can-open-the-patienteditordialog-in-edit-mode-for-the-selected-patient-allowing-modification-of-patient-name-patient-id-date-of-birth-and-treatment-history-notes",
+      "featureTitle": "Add an Edit Patient action to the PatientListPanel so users can open the PatientEditorDialog in edit mode for the selected patient, allowing modification of patient name, patient ID, date of birth, and treatment history notes.",
       "files": [
-        "frontend/src/components/camera/CameraAlignmentGuidesOverlay.tsx",
-        "frontend/src/components/camera/CameraCapturePanel.tsx"
+        "frontend/src/components/patients/PatientListPanel.tsx"
       ],
       "components": [
         "camera@1.0.0",
@@ -17,17 +16,15 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-37"
+        "REQ-83"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-add-an-optional-before-after-ghost-overlay-alignment-aid-that-helps-match-framing-by-overlaying-a-chosen-reference-photo-semi-transparently-during-camera-capture",
-      "featureTitle": "Add an optional before/after “ghost overlay” alignment aid that helps match framing by overlaying a chosen reference photo semi-transparently during camera capture.",
+      "featureId": "feature-add-a-delete-patient-action-to-the-patientlistpanel-that-triggers-the-patientdeleteconfirmdialog-and-upon-confirmation-removes-the-patient-and-all-associated-sessions-photos-annotations-pairings-and-voice-memos-from-indexeddb",
+      "featureTitle": "Add a Delete Patient action to the PatientListPanel that triggers the PatientDeleteConfirmDialog and, upon confirmation, removes the patient and all associated sessions, photos, annotations, pairings, and voice memos from IndexedDB.",
       "files": [
-        "frontend/src/components/camera/CameraCapturePanel.tsx",
-        "frontend/src/components/camera/GhostOverlayPickerDialog.tsx",
-        "frontend/src/components/photos/PhotoThumbnailGrid.tsx"
+        "frontend/src/components/patients/PatientListPanel.tsx"
       ],
       "components": [
         "camera@1.0.0",
@@ -38,20 +35,15 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-38"
+        "REQ-84"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-add-standard-clinical-view-templates-presets-e-g-frontal-45-occlusal-to-guide-capture-and-organization-including-persisting-the-selected-view-template-on-each-captured-imported-photo",
-      "featureTitle": "Add standard clinical view templates/presets (e.g., frontal, 45°, occlusal) to guide capture and organization, including persisting the selected view template on each captured/imported photo.",
+      "featureId": "feature-ensure-the-edit-and-delete-actions-in-the-patientlistpanel-are-touch-friendly-and-suitable-for-ipad-interaction-with-clear-labeling-and-adequate-touch-target-sizes",
+      "featureTitle": "Ensure the Edit and Delete actions in the PatientListPanel are touch-friendly and suitable for iPad interaction, with clear labeling and adequate touch target sizes.",
       "files": [
-        "frontend/src/components/camera/CameraCapturePanel.tsx",
-        "frontend/src/components/photos/PhotoThumbnailGrid.tsx",
-        "frontend/src/components/photos/PhotoViewerOverlay.tsx",
-        "frontend/src/components/photos/SessionPhotoImportButton.tsx",
-        "frontend/src/lib/media/photoStorage.ts",
-        "frontend/src/lib/models.ts"
+        "frontend/src/components/patients/PatientListPanel.tsx"
       ],
       "components": [
         "camera@1.0.0",
@@ -62,48 +54,7 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-39"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-add-quick-preset-annotation-stamps-for-faster-markups-including-at-least-arrows-margins-and-prep-lines-usable-within-the-full-screen-photo-viewer-annotation-experience",
-      "featureTitle": "Add quick-preset annotation stamps for faster markups, including at least arrows, margins, and prep lines, usable within the full-screen photo viewer annotation experience.",
-      "files": [
-        "frontend/src/components/photos/PhotoAnnotationCanvas.tsx",
-        "frontend/src/components/photos/PhotoAnnotationToolbar.tsx",
-        "frontend/src/components/photos/PhotoViewerOverlay.tsx",
-        "frontend/src/lib/models.ts"
-      ],
-      "components": [
-        "camera@1.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-40"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-add-a-simple-client-side-export-to-pdf-for-session-photos-that-includes-clinic-branding-producing-a-downloadable-branded-pdf-without-uploading-photos-to-the-backend",
-      "featureTitle": "Add a simple client-side export-to-PDF for session photos that includes clinic branding, producing a downloadable branded PDF without uploading photos to the backend.",
-      "files": [
-        "frontend/src/lib/export/sessionPdfExport.ts"
-      ],
-      "components": [
-        "camera@1.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-41"
+        "REQ-85"
       ],
       "confidence": "high"
     }

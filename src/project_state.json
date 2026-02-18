@@ -1,21 +1,23 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 17,
+  "projectStateVersion": 45,
   "summary": "Aspwn ClinicalSnap: an iPad (iOS) clinical photography manager prototype for dental/aesthetic clinics, focused on patient profiles, in-app photo capture with session-based organization, before/after comparisons, tagging, annotation, search, export/sharing, and strong on-device privacy.",
   "architectural_notes": [
     "Target platform: iPad (iOS); prototype first (single-screen) with patient list, photo viewer, and before/after comparison.",
     "UI direction: clean clinical minimal; white + soft teal palette; large touch targets for clinical/glove use; support portrait and landscape.",
     "Data/privacy constraint: store photos locally on-device only unless user exports; add app-open lock (Face ID/PIN).",
     "Treatment tagging should support editing after save and allow multi-select (multiple treatment tags per session and/or per photo).",
-    "Consider capture-assist UX additions (alignment guides + optional view templates) to improve shot consistency for before/after comparisons."
+    "Consider capture-assist UX additions (alignment guides + optional view templates) to improve shot consistency for before/after comparisons.",
+    "Voice memo option is now working correctly in the latest build; proceed next with clinical view templates/presets."
   ],
   "known_issues": [
     "Add Session flow is not working (user reports inability to add a new session).",
-    "Cannot add photos to a session (photo add/capture flow not working).",
-    "Camera is not connecting; user receives \"permission denied\" error (camera permissions issue).",
-    "Annotation tools are missing/not accessible in the current build (user expects draw/highlight/text annotations)."
+    "Annotation tools are missing/not accessible in the current build (user expects draw/highlight/text annotations).",
+    "Patient list in left sidebar does not scroll; only 8 patient names are visible when more patients exist.",
+    "Session section only displays 3 sessions; remaining sessions for a patient are not visible and pagination is not working as expected.",
+    "Patient list scroll and pagination not yet implemented: user cannot scroll or paginate to see all patient names when more than ~8 patients exist."
   ],
-  "isFixRequest": false,
+  "isFixRequest": true,
   "existing_features": [
     {
       "id": "feature-create-an-ipad-optimized-responsive-single-screen-prototype-ui-that-simultaneously-supports-1-patient-list-2-photo-session-viewer-for-the-selected-patient-and-3-before-after-comparison-view-side-by-side-and-swipe-reveal-modes-the-screen-must-work-in-both-portrait-and-landscape-with-large-glove-friendly-touch-targets",
@@ -320,6 +322,358 @@
         "REQ-41"
       ],
       "version": 1
+    },
+    {
+      "id": "feature-fix-the-in-app-camera-capture-experience-on-ipad-safari-so-it-never-shows-a-blank-screen-if-the-camera-cannot-start-or-render-a-live-preview-the-ui-must-show-a-clear-error-state-with-a-recovery-action-instead-of-leaving-the-preview-area-empty",
+      "title": "Fix the in-app camera capture experience on iPad Safari so it never shows a blank screen; if the camera cannot start or render a live preview, the UI must show a clear error state with a recovery action instead of leaving the preview area empty.",
+      "reqIds": [
+        "REQ-42"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-improve-ipad-safari-camera-start-reliability-by-making-camera-initialization-more-defensive-constraint-fallback-and-start-time-validation-so-common-ios-getusermedia-edge-cases-do-not-result-in-a-blank-preview",
+      "title": "Improve iPad/Safari camera start reliability by making camera initialization more defensive (constraint fallback and start-time validation) so common iOS getUserMedia edge cases do not result in a blank preview.",
+      "reqIds": [
+        "REQ-43"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-ensure-users-can-still-add-photos-on-ipad-even-when-the-camera-is-unavailable-by-making-the-session-photo-import-flow-reliable-and-by-surfacing-a-clear-path-to-import-from-the-camera-camera-roll-as-a-fallback",
+      "title": "Ensure users can still add photos on iPad even when the camera is unavailable by making the session photo import flow reliable and by surfacing a clear path to import from the camera/camera roll as a fallback.",
+      "reqIds": [
+        "REQ-44"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-targeted-diagnostics-for-the-camera-blank-screen-scenario-to-make-future-ipad-camera-issues-debuggable-in-production-builds-without-exposing-sensitive-data-log-structured-camera-start-capture-failure-reasons-and-surface-a-user-friendly-error-message-in-the-camera-panel",
+      "title": "Add targeted diagnostics for the camera blank-screen scenario to make future iPad camera issues debuggable in production builds (without exposing sensitive data): log structured camera start/capture failure reasons and surface a user-friendly error message in the camera panel.",
+      "reqIds": [
+        "REQ-45"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-eliminate-the-blank-screen-failure-state-in-the-in-app-camera-capture-flow-so-that-if-the-live-preview-cannot-start-or-cannot-render-the-ui-always-shows-a-clear-english-error-state-with-a-recovery-action-e-g-try-again-and-or-start-camera-instead-of-leaving-the-preview-area-empty-black",
+      "title": "Eliminate the blank-screen failure state in the in-app camera capture flow so that if the live preview cannot start or cannot render, the UI always shows a clear English error state with a recovery action (e.g., “Try Again” and/or “Start Camera”) instead of leaving the preview area empty/black.",
+      "reqIds": [
+        "REQ-46"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-make-camera-capture-reliably-functional-again-no-blank-screen-regressions-when-camera-permissions-are-granted-and-a-patient-session-are-selected-tapping-capture-saves-the-photo-to-the-active-session-and-the-session-photo-grid-updates-immediately-after-closing-the-camera-panel",
+      "title": "Make camera capture reliably functional again (no-blank-screen regressions): when camera permissions are granted and a patient + session are selected, tapping Capture saves the photo to the active session and the session photo grid updates immediately after closing the camera panel.",
+      "reqIds": [
+        "REQ-47"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-fix-the-session-photo-import-flow-so-users-can-reliably-import-photos-from-the-device-camera-roll-files-on-ipad-safari-and-importing-never-results-in-a-blank-empty-screen-state",
+      "title": "Fix the session photo import flow so users can reliably import photos from the device (camera roll/files) on iPad Safari, and importing never results in a blank/empty screen state.",
+      "reqIds": [
+        "REQ-48"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-ensure-targeted-non-sensitive-diagnostics-for-the-blank-screen-scenario-covering-both-camera-start-preview-validation-and-photo-capture-import-so-the-failure-reason-can-be-identified-in-production-without-exposing-patient-data",
+      "title": "Add/ensure targeted, non-sensitive diagnostics for the blank-screen scenario covering both camera start/preview validation and photo capture/import so the failure reason can be identified in production without exposing patient data.",
+      "reqIds": [
+        "REQ-49"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-fix-the-in-app-camera-capture-flow-so-that-on-ipad-safari-the-live-preview-does-not-show-a-blank-black-screen-after-the-user-presses-the-start-camera-button-if-the-camera-cannot-start-or-the-preview-cannot-be-validated-the-ui-must-show-a-clear-error-state-in-english-with-an-obvious-recovery-action-e-g-try-again-start-camera-instead-of-leaving-the-preview-area-blank",
+      "title": "Fix the in-app camera capture flow so that on iPad Safari the live preview does not show a blank/black screen after the user presses the “Start Camera” button; if the camera cannot start or the preview cannot be validated, the UI must show a clear error state (in English) with an obvious recovery action (e.g., “Try Again” / “Start Camera”) instead of leaving the preview area blank.",
+      "reqIds": [
+        "REQ-50"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-ensure-the-camera-capture-ui-exposes-and-reliably-enables-disables-optional-alignment-guides-composition-overlay-during-live-preview-and-that-the-guides-only-render-when-the-preview-is-active-not-during-loading-or-error-states",
+      "title": "Ensure the camera capture UI exposes and reliably enables/disables optional alignment guides (composition overlay) during live preview, and that the guides only render when the preview is active (not during loading or error states).",
+      "reqIds": [
+        "REQ-51"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-ensure-the-optional-before-after-ghost-overlay-alignment-aid-works-end-to-end-in-the-camera-capture-ui-user-can-pick-a-reference-photo-from-the-current-session-enable-disable-the-ghost-overlay-and-adjust-overlay-opacity-and-the-overlay-renders-above-the-live-preview-only-when-appropriate",
+      "title": "Ensure the optional before/after “ghost overlay” alignment aid works end-to-end in the camera capture UI: user can pick a reference photo from the current session, enable/disable the ghost overlay, and adjust overlay opacity, and the overlay renders above the live preview only when appropriate.",
+      "reqIds": [
+        "REQ-52"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-remove-the-current-camera-options-ui-in-the-full-screen-camera-capture-panel-and-rebuild-it-to-match-the-earlier-toggle-based-interaction-pattern-options-must-be-controllable-via-clear-on-off-toggles-switches-with-labels-suitable-for-ipad-touch-without-requiring-complex-nested-menus",
+      "title": "Remove the current camera “options” UI in the full-screen camera capture panel and rebuild it to match the earlier toggle-based interaction pattern: options must be controllable via clear on/off toggles (switches) with labels, suitable for iPad touch, without requiring complex nested menus.",
+      "reqIds": [
+        "REQ-53"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-change-voice-memo-behavior-so-that-recording-is-not-automatically-saved-when-recording-stops-instead-stopping-a-recording-should-transition-to-a-review-state-where-the-user-can-play-back-the-recording-and-explicitly-choose-to-save-or-discard-only-save-persists-the-memo-and-links-it-to-the-session",
+      "title": "Change voice memo behavior so that recording is not automatically saved when recording stops; instead, stopping a recording should transition to a review state where the user can play back the recording and explicitly choose to Save or Discard. Only Save persists the memo and links it to the session.",
+      "reqIds": [
+        "REQ-54"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-secondary-fallback-camera-capture-button-in-the-full-screen-camera-capture-ui-cameracapturepanel-that-does-not-rely-on-the-current-in-app-live-preview-capture-flow-so-users-can-still-capture-a-photo-on-ipad-when-the-current-camera-button-path-is-not-working",
+      "title": "Add a secondary/fallback camera capture button in the full-screen camera capture UI (CameraCapturePanel) that does not rely on the current in-app live preview capture flow, so users can still capture a photo on iPad when the current camera button path is not working.",
+      "reqIds": [
+        "REQ-55"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-non-sensitive-diagnostic-logging-for-the-new-fallback-capture-path-using-the-existing-camera-import-diagnostics-utilities-so-ipad-specific-failures-can-be-debugged-without-exposing-patient-data",
+      "title": "Add non-sensitive diagnostic logging for the new fallback capture path using the existing camera/import diagnostics utilities so iPad-specific failures can be debugged without exposing patient data.",
+      "reqIds": [
+        "REQ-56"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-make-voice-memo-recording-reliably-start-stop-on-ipad-safari-and-desktop-browsers-with-correct-duration-measurement-and-a-clear-error-state-when-microphone-permission-is-denied-or-recording-is-unsupported",
+      "title": "Make voice memo recording reliably start/stop on iPad Safari and desktop browsers, with correct duration measurement and a clear error state when microphone permission is denied or recording is unsupported.",
+      "reqIds": [
+        "REQ-57"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-fix-the-voice-memo-save-discard-workflow-so-that-only-save-persists-a-recording-to-indexeddb-links-it-to-the-correct-session-and-makes-it-playable-immediately-discard-must-leave-no-voice-memo-attached-to-the-session",
+      "title": "Fix the voice memo Save/Discard workflow so that only “Save” persists a recording to IndexedDB, links it to the correct session, and makes it playable immediately; “Discard” must leave no voice memo attached to the session.",
+      "reqIds": [
+        "REQ-58"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-ensure-voice-memo-playback-is-reliable-for-both-pending-unsaved-recordings-and-saved-recordings-including-preventing-conflicting-play-states-and-avoiding-audio-continuing-after-the-panel-is-closed",
+      "title": "Ensure voice memo playback is reliable for both pending (unsaved) recordings and saved recordings, including preventing conflicting play states and avoiding audio continuing after the panel is closed.",
+      "reqIds": [
+        "REQ-59"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-fix-the-saved-voice-memo-playback-so-recordings-that-were-saved-to-local-storage-can-be-played-back-reliably-on-ipad-safari-and-desktop-browsers",
+      "title": "Fix the saved voice memo playback so recordings that were saved to local storage can be played back reliably on iPad Safari and desktop browsers.",
+      "reqIds": [
+        "REQ-60"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-fix-the-false-misleading-microphone-permission-error-state-so-the-app-does-not-show-enable-microphone-messaging-when-the-user-has-already-granted-permission-and-provide-clearer-more-specific-english-guidance-based-on-the-actual-failure-mode",
+      "title": "Fix the false/misleading microphone permission error state so the app does not show “enable microphone” messaging when the user has already granted permission, and provide clearer, more specific English guidance based on the actual failure mode.",
+      "reqIds": [
+        "REQ-61"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-secondary-fallback-voice-memo-capture-option-in-the-voice-memo-panel-that-works-even-when-the-primary-in-app-mediarecorder-microphone-recording-flow-fails-on-ipad-safari-e-g-by-using-a-system-audio-capture-import-flow-and-allow-saving-the-resulting-audio-as-a-session-voice-memo-with-the-same-save-discard-workflow",
+      "title": "Add a secondary/fallback voice memo capture option in the Voice Memo panel that works even when the primary in-app MediaRecorder microphone recording flow fails on iPad Safari (e.g., by using a system audio capture/import flow), and allow saving the resulting audio as a session voice memo with the same Save/Discard workflow.",
+      "reqIds": [
+        "REQ-62"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-ensure-the-camera-capture-panel-supports-selecting-a-clinical-view-template-e-g-frontal-left-45-right-45-occlusal-or-none-and-that-the-selected-template-is-saved-onto-every-captured-photo-as-the-photo-s-viewtemplate-field",
+      "title": "Ensure the Camera Capture panel supports selecting a clinical View Template (e.g., Frontal, Left 45°, Right 45°, Occlusal, or None) and that the selected template is saved onto every captured photo as the photo’s viewTemplate field.",
+      "reqIds": [
+        "REQ-63"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-extend-the-session-photo-import-flow-so-imported-photos-also-store-the-selected-view-template-on-each-imported-photo-using-the-same-template-options-and-allowing-none",
+      "title": "Extend the session photo import flow so imported photos also store the selected View Template on each imported photo, using the same template options and allowing “None”.",
+      "reqIds": [
+        "REQ-64"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-display-the-saved-view-template-prominently-when-viewing-a-single-photo-in-the-full-screen-photo-viewer-in-addition-to-any-existing-thumbnail-grid-badge",
+      "title": "Display the saved View Template prominently when viewing a single photo in the full-screen Photo Viewer (in addition to any existing thumbnail-grid badge).",
+      "reqIds": [
+        "REQ-65"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-an-edit-workflow-to-change-the-view-template-on-an-existing-photo-local-only-so-users-can-correct-a-mislabeled-template-after-capture-import",
+      "title": "Add an edit workflow to change the View Template on an existing photo (local-only), so users can correct a mislabeled template after capture/import.",
+      "reqIds": [
+        "REQ-66"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-fix-the-session-timeline-rendering-in-sessiontimelinepanel-so-that-all-sessions-saved-for-a-patient-are-displayed-not-just-a-subset-if-a-patient-has-saved-3-sessions-all-3-must-be-visible-in-the-timeline",
+      "title": "Fix the session timeline rendering in SessionTimelinePanel so that all sessions saved for a patient are displayed, not just a subset. If a patient has saved 3 sessions, all 3 must be visible in the timeline.",
+      "reqIds": [
+        "REQ-67"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-pagination-ui-e-g-show-more-or-next-page-button-to-the-session-timeline-if-the-number-of-sessions-exceeds-a-reasonable-display-limit-ensuring-users-can-access-all-sessions-for-a-patient-without-performance-degradation",
+      "title": "Add pagination UI (e.g., 'Show More' or 'Next Page' button) to the session timeline if the number of sessions exceeds a reasonable display limit, ensuring users can access all sessions for a patient without performance degradation.",
+      "reqIds": [
+        "REQ-68"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-ensure-every-session-in-the-timeline-can-be-opened-expanded-reliably-without-errors-including-sessions-with-photos-annotations-voice-memos-and-multiple-treatment-tags",
+      "title": "Ensure every session in the timeline can be opened/expanded reliably without errors, including sessions with photos, annotations, voice memos, and multiple treatment tags.",
+      "reqIds": [
+        "REQ-69"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-a-before-after-overlay-comparison-mode-in-the-beforeaftercomparedialog-and-beforeafterfullscreenoverlay-that-allows-users-to-overlay-two-photos-on-top-of-each-other-for-visual-alignment-and-comparison-in-addition-to-the-existing-slider-mode",
+      "title": "Implement a before/after overlay comparison mode in the BeforeAfterCompareDialog and BeforeAfterFullscreenOverlay that allows users to overlay two photos on top of each other for visual alignment and comparison, in addition to the existing slider mode.",
+      "reqIds": [
+        "REQ-70"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-vertical-scrolling-to-the-patient-list-panel-in-the-left-sidebar-so-users-can-view-and-access-all-patient-names-when-more-than-8-patients-exist-ensuring-the-entire-list-is-scrollable-with-touch-friendly-interaction-suitable-for-ipad",
+      "title": "Add vertical scrolling to the patient list panel in the left sidebar so users can view and access all patient names when more than 8 patients exist, ensuring the entire list is scrollable with touch-friendly interaction suitable for iPad",
+      "reqIds": [
+        "REQ-71"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-extend-the-search-bar-functionality-in-the-patient-list-panel-to-support-filtering-patients-by-treatment-types-in-addition-to-the-existing-patient-name-search-allowing-users-to-find-patients-by-the-treatments-associated-with-their-sessions",
+      "title": "Extend the search bar functionality in the patient list panel to support filtering patients by treatment types in addition to the existing patient name search, allowing users to find patients by the treatments associated with their sessions",
+      "reqIds": [
+        "REQ-72"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-fix-the-session-timeline-panel-so-all-sessions-for-the-selected-patient-are-visible-and-accessible-not-just-the-first-3-sessions-by-ensuring-the-session-list-renders-completely-and-supports-scrolling-or-pagination-when-the-number-of-sessions-exceeds-the-visible-area",
+      "title": "Fix the session timeline panel so all sessions for the selected patient are visible and accessible, not just the first 3 sessions, by ensuring the session list renders completely and supports scrolling or pagination when the number of sessions exceeds the visible area",
+      "reqIds": [
+        "REQ-73"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-fix-the-patientlistpanel-component-so-the-patient-list-is-fully-scrollable-and-all-patient-names-are-accessible-when-more-than-5-8-patients-exist-ensuring-the-scroll-behavior-works-reliably-on-ipad-safari-with-touch-friendly-interaction",
+      "title": "Fix the PatientListPanel component so the patient list is fully scrollable and all patient names are accessible when more than 5-8 patients exist, ensuring the scroll behavior works reliably on iPad Safari with touch-friendly interaction.",
+      "reqIds": [
+        "REQ-74"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-pagination-ui-controls-to-the-patientlistpanel-if-the-implementation-uses-pagination-instead-of-continuous-scrolling-including-next-page-previous-page-buttons-or-page-number-indicators-that-are-touch-friendly-and-clearly-indicate-the-current-page-and-total-available-pages",
+      "title": "Add pagination UI controls to the PatientListPanel if the implementation uses pagination instead of continuous scrolling, including 'Next Page' / 'Previous Page' buttons or page number indicators that are touch-friendly and clearly indicate the current page and total available pages.",
+      "reqIds": [
+        "REQ-75"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-verify-and-fix-the-patient-list-container-height-and-overflow-properties-in-patientlistpanel-so-the-container-does-not-clip-content-and-allows-viewing-all-patients-either-through-scrolling-or-pagination-without-visual-cutoff",
+      "title": "Verify and fix the patient list container height and overflow properties in PatientListPanel so the container does not clip content and allows viewing all patients either through scrolling or pagination without visual cutoff.",
+      "reqIds": [
+        "REQ-76"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-fix-the-patientlistpanel-component-so-the-patient-list-container-does-not-clip-content-at-a-fixed-height-and-all-patient-entries-are-visible-when-more-than-4-5-patients-exist",
+      "title": "Fix the PatientListPanel component so the patient list container does not clip content at a fixed height and all patient entries are visible when more than 4-5 patients exist.",
+      "reqIds": [
+        "REQ-77"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-ensure-the-patientlistpanel-applies-proper-css-overflow-and-height-constraints-so-the-patient-list-is-scrollable-within-the-left-sidebar-panel-boundaries-without-overlapping-other-ui-elements",
+      "title": "Ensure the PatientListPanel applies proper CSS overflow and height constraints so the patient list is scrollable within the left sidebar panel boundaries without overlapping other UI elements.",
+      "reqIds": [
+        "REQ-78"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-verify-that-the-patientlistpanel-correctly-renders-all-stored-patient-records-from-indexeddb-and-that-the-list-length-is-not-artificially-limited-by-frontend-filtering-or-pagination-logic",
+      "title": "Verify that the PatientListPanel correctly renders all stored patient records from IndexedDB and that the list length is not artificially limited by frontend filtering or pagination logic.",
+      "reqIds": [
+        "REQ-79"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-visible-scrollbar-to-the-patientlistpanel-component-so-users-can-see-when-the-patient-list-is-scrollable-and-understand-there-are-more-patients-beyond-the-visible-area",
+      "title": "Add a visible scrollbar to the PatientListPanel component so users can see when the patient list is scrollable and understand there are more patients beyond the visible area.",
+      "reqIds": [
+        "REQ-80"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-ensure-the-patientlistpanel-container-applies-proper-css-overflow-y-scrolling-so-the-entire-patient-list-is-accessible-when-more-than-5-8-patients-exist-with-the-scrollable-area-clearly-bounded-within-the-left-sidebar-panel-without-overlapping-other-ui-elements",
+      "title": "Ensure the PatientListPanel container applies proper CSS overflow-y scrolling so the entire patient list is accessible when more than 5-8 patients exist, with the scrollable area clearly bounded within the left sidebar panel without overlapping other UI elements.",
+      "reqIds": [
+        "REQ-81"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-verify-that-the-patientlistpanel-component-correctly-renders-all-stored-patient-records-from-indexeddb-without-artificial-pagination-limits-ensuring-the-full-patient-count-is-displayed-and-accessible-through-scrolling",
+      "title": "Verify that the PatientListPanel component correctly renders all stored patient records from IndexedDB without artificial pagination limits, ensuring the full patient count is displayed and accessible through scrolling.",
+      "reqIds": [
+        "REQ-82"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-an-edit-patient-action-to-the-patientlistpanel-so-users-can-open-the-patienteditordialog-in-edit-mode-for-the-selected-patient-allowing-modification-of-patient-name-patient-id-date-of-birth-and-treatment-history-notes",
+      "title": "Add an Edit Patient action to the PatientListPanel so users can open the PatientEditorDialog in edit mode for the selected patient, allowing modification of patient name, patient ID, date of birth, and treatment history notes.",
+      "reqIds": [
+        "REQ-83"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-delete-patient-action-to-the-patientlistpanel-that-triggers-the-patientdeleteconfirmdialog-and-upon-confirmation-removes-the-patient-and-all-associated-sessions-photos-annotations-pairings-and-voice-memos-from-indexeddb",
+      "title": "Add a Delete Patient action to the PatientListPanel that triggers the PatientDeleteConfirmDialog and, upon confirmation, removes the patient and all associated sessions, photos, annotations, pairings, and voice memos from IndexedDB.",
+      "reqIds": [
+        "REQ-84"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-ensure-the-edit-and-delete-actions-in-the-patientlistpanel-are-touch-friendly-and-suitable-for-ipad-interaction-with-clear-labeling-and-adequate-touch-target-sizes",
+      "title": "Ensure the Edit and Delete actions in the PatientListPanel are touch-friendly and suitable for iPad interaction, with clear labeling and adequate touch target sizes.",
+      "reqIds": [
+        "REQ-85"
+      ],
+      "version": 1
     }
   ],
   "new_feature_requests": [
@@ -488,6 +842,48 @@
     {
       "id": "AR-40",
       "summary": "Add simple export-to-PDF for session photos with clinic branding",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-41",
+      "summary": "Add an alternative/secondary camera Start/Capture button option in the camera UI as a fallback because the current camera button is not working on iPad",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-42",
+      "summary": "Add a secondary/fallback voice memo recording option/path that works reliably even when the primary microphone recording flow reports permission errors or fails on iPad Safari",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-43",
+      "summary": "Fix session timeline display so all saved sessions for a patient are visible (not just 2); add pagination/next-page UI if necessary",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-44",
+      "summary": "Implement before/after overlay comparison mode to allow visual alignment/comparison of two photos on top of each other",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-45",
+      "summary": "Add scroll capability to patient list in left sidebar so all patient names are visible when more than 8 patients exist",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-46",
+      "summary": "Extend search bar functionality to support searching/filtering by treatment types in addition to patient names",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-47",
+      "summary": "Add edit and delete options for patient profiles (edit patient name and delete patient)",
       "reqIds": [],
       "status": "pending"
     }

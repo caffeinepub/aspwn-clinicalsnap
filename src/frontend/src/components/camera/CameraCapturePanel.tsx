@@ -1,31 +1,33 @@
-// Full-screen camera capture interface with alignment guides, ghost overlay, view templates, and robust permission handling
+// Full-screen camera capture interface with iPad-hardened initialization, explicit video playback trigger, robust error recovery, toggle-based camera options UI with alignment guides, ghost overlay, view template selection persisted to captured photos, and fallback system camera capture button with structured diagnostics.
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useCamera } from '@/camera/useCamera';
 import { useAppStore } from '@/lib/state/useAppStore';
 import { uint8ArrayToObjectURL } from '@/lib/media/photoStorage';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Camera, X, Circle, AlertCircle, Grid3x3, Ghost, Tag } from 'lucide-react';
+import { Camera, X, Circle, AlertCircle } from 'lucide-react';
 import { captureFileToPhoto } from '@/lib/media/photoStorage';
 import { toast } from 'sonner';
 import { CameraFlipToggle } from './CameraFlipToggle';
 import { CameraAlignmentGuidesOverlay } from './CameraAlignmentGuidesOverlay';
 import { GhostOverlayPickerDialog } from './GhostOverlayPickerDialog';
-import { VIEW_TEMPLATES } from '@/lib/models';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { Slider } from '@/components/ui/slider';
+import { CameraOptionsToggles } from './CameraOptionsToggles';
+import { FallbackCameraCaptureButton } from './FallbackCameraCaptureButton';
+import { validateVideoPreview } from '@/lib/media/cameraPreviewValidation';
+import { logCameraDiagnostic, categorizeCameraError } from '@/lib/media/cameraDiagnostics';
 
 interface CameraCapturePanelProps {
   sessionId: string;
   patientId: string;
   onClose: () => void;
+}
+
+interface ConstraintConfig {
+  facingMode: 'user' | 'environment';
+  width?: number;
+  height?: number;
+  quality: number;
 }
 
 export function CameraCapturePanel({ sessionId, patientId, onClose }: CameraCapturePanelProps) {
@@ -34,6 +36,12 @@ export function CameraCapturePanel({ sessionId, patientId, onClose }: CameraCapt
   const [hasAttemptedStart, setHasAttemptedStart] = useState(false);
   const [isSwitching, setIsSwitching] = useState(false);
   const [switchError, setSwitchError] = useState<string | null>(null);
+  const [isValidatingPreview, setIsValidatingPreview] = useState(false);
+  const [previewValidationFailed, setPreviewValidationFailed] = useState(false);
+  const [constraintAttempt, setConstraintAttempt] = useState(0);
+  const [captureError, setCaptureError] = useState<string | null>(null);
+  const [isFallbackProcessing, setIsFallbackProcessing] = useState(false);
+  const validationTimeoutRef = useRef<number | null>(null);
 
   // Alignment guides state
   const [guidesEnabled, setGuidesEnabled] = useState(false);
@@ -46,6 +54,23 @@ export function CameraCapturePanel({ sessionId, patientId, onClose }: CameraCapt
 
   // View template state
   const [selectedViewTemplate, setSelectedViewTemplate] = useState<string>('');
+
+  // Check if patient/session are valid
+  const hasValidContext = Boolean(patientId && sessionId);
+
+  // Constraint fallback configurations for iPad compatibility
+  const constraintConfigs: ConstraintConfig[] = [
+    // Attempt 1: High quality (desktop/modern devices)
+    { facingMode: 'environment', width: 1920, height: 1080, quality: 0.9 },
+    // Attempt 2: Medium quality (iPad fallback)
+    { facingMode: 'environment', width: 1280, height: 720, quality: 0.85 },
+    // Attempt 3: iOS-safe resolution (640 is well-supported on iOS)
+    { facingMode: 'environment', width: 640, height: 480, quality: 0.85 },
+    // Attempt 4: Minimal constraints (last resort)
+    { facingMode: 'environment', quality: 0.8 },
+  ];
+
+  const currentConfig = constraintConfigs[Math.min(constraintAttempt, constraintConfigs.length - 1)];
 
   const {
     isActive,
@@ -61,47 +86,273 @@ export function CameraCapturePanel({ sessionId, patientId, onClose }: CameraCapt
     videoRef,
     canvasRef,
   } = useCamera({
-    facingMode: 'environment',
-    width: 1920,
-    height: 1080,
-    quality: 0.9,
+    facingMode: currentConfig.facingMode,
+    width: currentConfig.width,
+    height: currentConfig.height,
+    quality: currentConfig.quality,
   });
 
-  // Get ghost photo data
-  const ghostPhoto = ghostPhotoId ? photos.find((p) => p.id === ghostPhotoId) : null;
+  // Get session photos for ghost overlay
+  const sessionPhotos = photos.filter((p) => p.sessionId === sessionId);
+
+  // Get ghost photo data and validate it still exists
+  const ghostPhoto = ghostPhotoId ? sessionPhotos.find((p) => p.id === ghostPhotoId) : null;
   const ghostImageUrl = ghostPhoto ? uint8ArrayToObjectURL(ghostPhoto.imageData) : null;
+
+  // Check if ghost photo was deleted
+  useEffect(() => {
+    if (ghostPhotoId && !ghostPhoto) {
+      // Ghost photo was deleted
+      setGhostPhotoId(null);
+      setGhostEnabled(false);
+      toast.error('Reference photo was deleted. Ghost overlay has been disabled.');
+      
+      logCameraDiagnostic({
+        category: 'unknown',
+        operation: 'capture',
+        message: 'Ghost reference photo no longer exists',
+      });
+    }
+  }, [ghostPhotoId, ghostPhoto]);
 
   // Cleanup on unmount
   useEffect(() => {
     return () => {
       stopCamera();
+      if (validationTimeoutRef.current !== null) {
+        clearTimeout(validationTimeoutRef.current);
+      }
+      // Cleanup ghost image URL
+      if (ghostImageUrl) {
+        URL.revokeObjectURL(ghostImageUrl);
+      }
     };
-  }, [stopCamera]);
+  }, [stopCamera, ghostImageUrl]);
 
-  // Watchdog: if loading for more than 10 seconds, treat as timeout
+  // Explicitly trigger video playback after camera becomes active (iPad Safari fix)
+  useEffect(() => {
+    if (isActive && videoRef.current && hasAttemptedStart) {
+      const video = videoRef.current;
+      
+      // Ensure video attributes are set for iPad Safari
+      video.muted = true;
+      video.playsInline = true;
+      video.setAttribute('playsinline', '');
+      video.setAttribute('webkit-playsinline', '');
+      
+      // Explicitly call play() to trigger playback on iPad Safari
+      const playPromise = video.play();
+      
+      if (playPromise !== undefined) {
+        playPromise
+          .then(() => {
+            logCameraDiagnostic({
+              category: 'unknown',
+              operation: 'start',
+              message: 'Video playback started successfully',
+            });
+          })
+          .catch((err) => {
+            logCameraDiagnostic({
+              category: 'unknown',
+              operation: 'start',
+              message: 'Video play() failed',
+              details: { error: String(err) },
+            });
+            
+            // Try again after a short delay
+            setTimeout(() => {
+              video.play().catch((retryErr) => {
+                console.error('Video play retry failed:', retryErr);
+              });
+            }, 500);
+          });
+      }
+    }
+  }, [isActive, hasAttemptedStart, videoRef]);
+
+  // Validate preview when camera becomes active
+  useEffect(() => {
+    if (isActive && videoRef.current && hasAttemptedStart && !isValidatingPreview) {
+      setIsValidatingPreview(true);
+      setPreviewValidationFailed(false);
+
+      logCameraDiagnostic({
+        category: 'unknown',
+        operation: 'validation',
+        message: 'Starting preview validation',
+        details: { attempt: constraintAttempt + 1 },
+      });
+
+      validateVideoPreview(videoRef.current, 8000)
+        .then((result) => {
+          setIsValidatingPreview(false);
+
+          if (!result.isReady) {
+            logCameraDiagnostic({
+              category: 'unknown',
+              operation: 'validation',
+              message: `Preview validation failed: ${result.reason}`,
+              details: {
+                attempt: constraintAttempt + 1,
+                readyState: videoRef.current?.readyState,
+                videoWidth: videoRef.current?.videoWidth,
+                videoHeight: videoRef.current?.videoHeight,
+              },
+            });
+
+            setPreviewValidationFailed(true);
+
+            // Try fallback constraint if available
+            if (constraintAttempt < constraintConfigs.length - 1) {
+              validationTimeoutRef.current = window.setTimeout(() => {
+                handleConstraintFallback();
+              }, 1000);
+            }
+          } else {
+            logCameraDiagnostic({
+              category: 'unknown',
+              operation: 'validation',
+              message: 'Preview validation successful',
+              details: {
+                attempt: constraintAttempt + 1,
+                readyState: videoRef.current?.readyState,
+                videoWidth: videoRef.current?.videoWidth,
+                videoHeight: videoRef.current?.videoHeight,
+              },
+            });
+          }
+        })
+        .catch((err) => {
+          console.error('Preview validation error:', err);
+          setIsValidatingPreview(false);
+          setPreviewValidationFailed(true);
+
+          logCameraDiagnostic({
+            category: 'unknown',
+            operation: 'validation',
+            message: 'Preview validation exception',
+            details: { error: String(err) },
+          });
+        });
+    }
+  }, [isActive, hasAttemptedStart, constraintAttempt]);
+
+  // Watchdog: if loading for more than 12 seconds, treat as timeout
   useEffect(() => {
     if (isLoading && hasAttemptedStart) {
       const timeout = setTimeout(() => {
         if (isLoading && !isActive && !error) {
-          retry();
+          logCameraDiagnostic({
+            category: 'timeout',
+            operation: 'start',
+            message: 'Camera start timeout (12s)',
+            details: { attempt: constraintAttempt + 1 },
+          });
+
+          // Try fallback or retry
+          if (constraintAttempt < constraintConfigs.length - 1) {
+            handleConstraintFallback();
+          } else {
+            retry();
+          }
         }
-      }, 10000);
+      }, 12000);
       return () => clearTimeout(timeout);
     }
-  }, [isLoading, hasAttemptedStart, isActive, error, retry]);
+  }, [isLoading, hasAttemptedStart, isActive, error, retry, constraintAttempt]);
+
+  const handleConstraintFallback = async () => {
+    const nextAttempt = constraintAttempt + 1;
+    if (nextAttempt >= constraintConfigs.length) {
+      return;
+    }
+
+    logCameraDiagnostic({
+      category: 'constraint',
+      operation: 'start',
+      message: `Trying fallback constraint configuration ${nextAttempt + 1}`,
+      details: { config: constraintConfigs[nextAttempt] },
+    });
+
+    await stopCamera();
+    setConstraintAttempt(nextAttempt);
+    setPreviewValidationFailed(false);
+
+    // Small delay before retry
+    setTimeout(() => {
+      startCamera();
+    }, 500);
+  };
 
   const handleStartCamera = async () => {
+    if (!hasValidContext) {
+      logCameraDiagnostic({
+        category: 'unknown',
+        operation: 'start',
+        message: 'Camera start blocked: missing patient or session',
+      });
+      return;
+    }
+
     setHasAttemptedStart(true);
+    setPreviewValidationFailed(false);
+    setCaptureError(null);
+
+    logCameraDiagnostic({
+      category: 'unknown',
+      operation: 'start',
+      message: 'User initiated camera start',
+      details: { attempt: constraintAttempt + 1, config: currentConfig },
+    });
+
     const success = await startCamera();
+
     if (!success) {
-      toast.error('Failed to start camera');
+      const category = error ? categorizeCameraError(error) : 'unknown';
+      logCameraDiagnostic({
+        category,
+        operation: 'start',
+        message: 'Camera start failed',
+        details: {
+          attempt: constraintAttempt + 1,
+          errorType: error?.type,
+          errorMessage: error?.message,
+        },
+      });
+
+      // Try fallback constraint if this was a constraint error
+      if (category === 'constraint' && constraintAttempt < constraintConfigs.length - 1) {
+        toast.info('Trying alternative camera settings...');
+        handleConstraintFallback();
+      } else {
+        toast.error('Failed to start camera');
+      }
     }
   };
 
   const handleRetry = async () => {
     setSwitchError(null);
+    setPreviewValidationFailed(false);
+    setCaptureError(null);
+
+    logCameraDiagnostic({
+      category: 'unknown',
+      operation: 'start',
+      message: 'User initiated retry',
+      details: { attempt: constraintAttempt + 1 },
+    });
+
     const success = await retry();
+
     if (!success) {
+      logCameraDiagnostic({
+        category: error ? categorizeCameraError(error) : 'unknown',
+        operation: 'start',
+        message: 'Retry failed',
+        details: { errorType: error?.type, errorMessage: error?.message },
+      });
+
       toast.error('Failed to start camera');
     }
   };
@@ -109,17 +360,48 @@ export function CameraCapturePanel({ sessionId, patientId, onClose }: CameraCapt
   const handleSwitchCamera = async () => {
     setSwitchError(null);
     setIsSwitching(true);
+
+    logCameraDiagnostic({
+      category: 'unknown',
+      operation: 'switch',
+      message: 'User initiated camera switch',
+      details: { currentFacingMode },
+    });
+
     try {
       const success = await switchCamera();
       if (!success) {
-        setSwitchError('Unable to switch cameras. Your device may only have one camera.');
+        const errorMsg = 'Unable to switch cameras. Your device may only have one camera.';
+        setSwitchError(errorMsg);
+
+        logCameraDiagnostic({
+          category: 'not-found',
+          operation: 'switch',
+          message: 'Camera switch failed',
+        });
+
         toast.error('Failed to switch camera');
       } else {
-        toast.success(`Switched to ${currentFacingMode === 'user' ? 'back' : 'front'} camera`);
+        logCameraDiagnostic({
+          category: 'unknown',
+          operation: 'switch',
+          message: 'Camera switch successful',
+          details: { newFacingMode: currentFacingMode },
+        });
+
+        toast.success(`Switched to ${currentFacingMode === 'user' ? 'front' : 'back'} camera`);
       }
     } catch (err) {
       console.error('Switch camera error:', err);
       setSwitchError('Camera switching is not supported on this device.');
+
+      logCameraDiagnostic({
+        category: 'not-supported',
+        operation: 'switch',
+        message: 'Camera switch exception',
+        details: { error: String(err) },
+      });
+
       toast.error('Camera switching not supported');
     } finally {
       setIsSwitching(false);
@@ -127,317 +409,384 @@ export function CameraCapturePanel({ sessionId, patientId, onClose }: CameraCapt
   };
 
   const handleCapture = async () => {
-    if (!patientId || !sessionId) {
-      toast.error('Cannot capture: patient or session not selected');
+    if (!hasValidContext) {
+      const errorMsg = 'Cannot capture: patient or session not selected';
+      setCaptureError(errorMsg);
+      toast.error(errorMsg);
+
+      logCameraDiagnostic({
+        category: 'unknown',
+        operation: 'capture',
+        message: 'Capture blocked: missing patient or session',
+      });
       return;
     }
 
     setIsCapturing(true);
+    setCaptureError(null);
+
+    logCameraDiagnostic({
+      category: 'unknown',
+      operation: 'capture',
+      message: 'User initiated photo capture',
+    });
+
     try {
       const file = await capturePhoto();
-      if (file) {
-        const photoData = await captureFileToPhoto(file, sessionId, patientId);
-        await createPhoto({
-          ...photoData,
-          sessionId,
-          patientId,
-          viewTemplate: selectedViewTemplate || undefined,
+      if (!file) {
+        const errorMsg = 'Failed to capture photo. Please try again.';
+        setCaptureError(errorMsg);
+        toast.error(errorMsg);
+
+        logCameraDiagnostic({
+          category: 'unknown',
+          operation: 'capture',
+          message: 'Capture returned null file',
         });
-        toast.success('Photo captured successfully');
-        onClose();
-      } else {
-        toast.error('Failed to capture photo');
+
+        setIsCapturing(false);
+        return;
       }
+
+      const photoData = await captureFileToPhoto(file, sessionId, patientId);
+      await createPhoto({
+        ...photoData,
+        sessionId,
+        patientId,
+        capturedAt: photoData.timestamp,
+        viewTemplate: selectedViewTemplate || undefined,
+      });
+
+      logCameraDiagnostic({
+        category: 'unknown',
+        operation: 'capture',
+        message: 'Photo captured and saved successfully',
+        details: { hasViewTemplate: Boolean(selectedViewTemplate) },
+      });
+
+      toast.success('Photo captured successfully');
     } catch (err) {
-      console.error('Capture failed:', err);
-      toast.error('Failed to save photo. Please try again.');
+      console.error('Capture error:', err);
+      const errorMsg = err instanceof Error ? err.message : 'Failed to capture photo';
+      setCaptureError(errorMsg);
+      toast.error(errorMsg);
+
+      logCameraDiagnostic({
+        category: 'unknown',
+        operation: 'capture',
+        message: 'Capture exception',
+        details: { error: String(err) },
+      });
     } finally {
       setIsCapturing(false);
     }
   };
 
-  const handleGhostToggle = () => {
-    if (!ghostEnabled && !ghostPhotoId) {
-      // Open picker if no photo selected
-      setShowGhostPicker(true);
-    } else {
-      setGhostEnabled(!ghostEnabled);
+  const handleFallbackCapture = async (file: File) => {
+    if (!hasValidContext) {
+      const errorMsg = 'Cannot capture: patient or session not selected';
+      toast.error(errorMsg);
+
+      logCameraDiagnostic({
+        category: 'unknown',
+        operation: 'fallback-capture',
+        message: 'Fallback capture blocked: missing patient or session',
+      });
+      return;
+    }
+
+    setIsFallbackProcessing(true);
+    setCaptureError(null);
+
+    logCameraDiagnostic({
+      category: 'unknown',
+      operation: 'fallback-capture',
+      message: 'Processing fallback capture',
+      details: { fileType: file.type, fileSize: file.size },
+    });
+
+    try {
+      const photoData = await captureFileToPhoto(file, sessionId, patientId);
+      await createPhoto({
+        ...photoData,
+        sessionId,
+        patientId,
+        capturedAt: photoData.timestamp,
+        viewTemplate: selectedViewTemplate || undefined,
+      });
+
+      logCameraDiagnostic({
+        category: 'unknown',
+        operation: 'fallback-capture',
+        message: 'Fallback photo saved successfully',
+        details: { hasViewTemplate: Boolean(selectedViewTemplate) },
+      });
+
+      toast.success('Photo captured successfully');
+    } catch (err) {
+      console.error('Fallback capture error:', err);
+      const errorMsg = err instanceof Error ? err.message : 'Failed to capture photo';
+      setCaptureError(errorMsg);
+      toast.error(errorMsg);
+
+      logCameraDiagnostic({
+        category: 'unknown',
+        operation: 'fallback-capture',
+        message: 'Fallback capture exception',
+        details: { error: String(err) },
+      });
+    } finally {
+      setIsFallbackProcessing(false);
     }
   };
 
-  const handleGhostPhotoSelect = (photoId: string) => {
+  const handleFallbackCancel = () => {
+    logCameraDiagnostic({
+      category: 'unknown',
+      operation: 'fallback-capture',
+      message: 'User canceled fallback capture',
+    });
+  };
+
+  const handleFallbackError = (error: string) => {
+    setCaptureError(error);
+    toast.error(error);
+
+    logCameraDiagnostic({
+      category: 'unknown',
+      operation: 'fallback-capture',
+      message: 'Fallback capture error',
+      details: { error },
+    });
+  };
+
+  const handleGhostPhotoSelect = (photoId: string | null) => {
+    setGhostPhotoId(photoId);
     if (photoId) {
-      setGhostPhotoId(photoId);
       setGhostEnabled(true);
+      logCameraDiagnostic({
+        category: 'unknown',
+        operation: 'capture',
+        message: 'Ghost overlay photo selected',
+      });
     } else {
-      setGhostPhotoId(null);
       setGhostEnabled(false);
     }
+    setShowGhostPicker(false);
   };
 
-  // Camera not supported
+  // Render camera not supported
   if (isSupported === false) {
     return (
-      <div className="fixed inset-0 bg-background z-50 flex items-center justify-center p-4">
-        <div className="text-center space-y-4 max-w-md">
-          <Camera className="w-16 h-16 mx-auto text-muted-foreground" />
-          <h2 className="text-xl font-semibold">Camera Not Supported</h2>
-          <p className="text-muted-foreground">
-            Your device or browser does not support camera access.
-          </p>
-          <Button onClick={onClose} className="touch-target">
-            Close
-          </Button>
-        </div>
+      <div className="fixed inset-0 z-50 bg-black flex flex-col items-center justify-center p-4">
+        <Alert variant="destructive" className="max-w-md">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Camera Not Supported</AlertTitle>
+          <AlertDescription>
+            Your device or browser does not support camera access. Please try using a different device or browser.
+          </AlertDescription>
+        </Alert>
+        <Button onClick={onClose} variant="outline" className="mt-4 touch-target">
+          Close
+        </Button>
       </div>
     );
   }
 
-  // Get user-friendly error message
-  const getErrorMessage = () => {
-    if (!error) return null;
-
-    switch (error.type) {
-      case 'permission':
-        return {
-          title: 'Camera Permission Denied',
-          message:
-            'Camera access is blocked. Please enable camera permission in your browser settings for this site, then try again. You may need to reload the page after changing permissions.',
-        };
-      case 'not-found':
-        return {
-          title: 'No Camera Found',
-          message:
-            'No camera was detected on your device. Please connect a camera and try again.',
-        };
-      case 'not-supported':
-        return {
-          title: 'Camera Not Supported',
-          message: 'Your browser does not support camera access.',
-        };
-      case 'unknown':
-      default:
-        return {
-          title: 'Camera Error',
-          message:
-            error.message || 'An error occurred while accessing the camera. Please check that no other application is using the camera and try again.',
-        };
-    }
-  };
-
-  const errorInfo = getErrorMessage();
-
   return (
-    <div className="fixed inset-0 bg-black z-50 flex flex-col">
-      {/* Camera preview */}
-      <div className="flex-1 relative min-h-0">
+    <div className="fixed inset-0 z-50 bg-black flex flex-col">
+      {/* Header */}
+      <div className="flex items-center justify-between p-4 bg-black/50 relative z-10">
+        <h2 className="text-white text-lg font-semibold">Camera</h2>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={onClose}
+          className="text-white hover:bg-white/20 touch-target"
+        >
+          <X className="w-5 h-5" />
+        </Button>
+      </div>
+
+      {/* Camera preview container */}
+      <div className="flex-1 relative overflow-hidden camera-preview-container">
+        {!isActive && !isLoading && !error && (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <Button
+              onClick={handleStartCamera}
+              disabled={!hasValidContext || isLoading}
+              size="lg"
+              className="touch-target"
+            >
+              <Camera className="w-5 h-5 mr-2" />
+              {hasValidContext ? 'Start Camera' : 'Select Patient & Session'}
+            </Button>
+          </div>
+        )}
+
+        {isLoading && (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="text-center text-white">
+              <div className="w-12 h-12 border-4 border-white border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+              <p>Starting camera...</p>
+            </div>
+          </div>
+        )}
+
+        {error && (
+          <div className="absolute inset-0 flex items-center justify-center p-4">
+            <Alert variant="destructive" className="max-w-md">
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle>Camera Error</AlertTitle>
+              <AlertDescription className="space-y-2">
+                <p>{error.message}</p>
+                {error.type === 'permission' && (
+                  <p className="text-sm">
+                    Please grant camera permission in your browser settings and try again.
+                  </p>
+                )}
+                {error.type === 'not-found' && (
+                  <p className="text-sm">
+                    Make sure your device has a camera and it's not being used by another application.
+                  </p>
+                )}
+              </AlertDescription>
+            </Alert>
+            <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2">
+              <Button onClick={handleRetry} variant="outline" className="touch-target">
+                Retry
+              </Button>
+              <Button onClick={onClose} variant="outline" className="touch-target">
+                Close
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {previewValidationFailed && isActive && (
+          <div className="absolute top-20 left-0 right-0 flex justify-center px-4 z-10">
+            <Alert variant="destructive" className="max-w-md">
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle>Camera Preview Issue</AlertTitle>
+              <AlertDescription>
+                The camera preview appears to be blank or frozen. Trying alternative settings...
+              </AlertDescription>
+            </Alert>
+          </div>
+        )}
+
+        {switchError && (
+          <div className="absolute top-20 left-0 right-0 flex justify-center px-4 z-10">
+            <Alert className="max-w-md">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>{switchError}</AlertDescription>
+            </Alert>
+          </div>
+        )}
+
+        {captureError && (
+          <div className="absolute top-20 left-0 right-0 flex justify-center px-4 z-10">
+            <Alert variant="destructive" className="max-w-md">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>{captureError}</AlertDescription>
+            </Alert>
+          </div>
+        )}
+
+        {/* Video preview */}
         <video
           ref={videoRef}
           autoPlay
           playsInline
           muted
-          className="w-full h-full object-cover"
-          style={{ minHeight: '300px' }}
+          className="absolute inset-0 w-full h-full object-cover"
         />
-        <canvas ref={canvasRef} className="hidden" />
 
         {/* Ghost overlay */}
-        {ghostEnabled && ghostImageUrl && isActive && (
+        {isActive && ghostEnabled && ghostImageUrl && (
           <div
             className="absolute inset-0 pointer-events-none"
             style={{ opacity: ghostOpacity / 100 }}
           >
             <img
               src={ghostImageUrl}
-              alt="Ghost overlay"
+              alt="Reference"
               className="w-full h-full object-cover"
             />
           </div>
         )}
 
         {/* Alignment guides overlay */}
-        <CameraAlignmentGuidesOverlay enabled={guidesEnabled && isActive} />
+        {isActive && guidesEnabled && <CameraAlignmentGuidesOverlay />}
 
-        {/* Error overlay */}
-        {errorInfo && (
-          <div className="absolute inset-0 flex items-center justify-center p-4 bg-black/90">
-            <Alert variant="destructive" className="max-w-md">
-              <AlertCircle className="h-5 w-5" />
-              <AlertTitle className="text-lg font-semibold">{errorInfo.title}</AlertTitle>
-              <AlertDescription className="mt-2 space-y-4">
-                <p className="text-sm">{errorInfo.message}</p>
-                <Button
-                  onClick={handleRetry}
-                  variant="outline"
-                  className="w-full touch-target"
-                  disabled={isLoading}
-                >
-                  {isLoading ? 'Starting...' : 'Try Again'}
-                </Button>
-              </AlertDescription>
-            </Alert>
-          </div>
-        )}
-
-        {/* Switch error notification */}
-        {switchError && isActive && (
-          <div className="absolute top-4 left-1/2 -translate-x-1/2 max-w-md px-4">
-            <Alert variant="destructive" className="bg-destructive/90 backdrop-blur">
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription className="text-sm">{switchError}</AlertDescription>
-            </Alert>
-          </div>
-        )}
-
-        {/* Initial start prompt */}
-        {!hasAttemptedStart && !isActive && !error && (
-          <div className="absolute inset-0 flex items-center justify-center p-4 bg-black/80">
-            <div className="text-center space-y-4 max-w-md">
-              <Camera className="w-16 h-16 mx-auto text-white" />
-              <h2 className="text-xl font-semibold text-white">Ready to Capture</h2>
-              <p className="text-white/70">Tap the button below to start the camera</p>
-              <Button
-                onClick={handleStartCamera}
-                size="lg"
-                className="touch-target-lg"
-                disabled={isLoading}
-              >
-                {isLoading ? 'Starting Camera...' : 'Start Camera'}
-              </Button>
-            </div>
-          </div>
-        )}
-
-        {/* Loading overlay */}
-        {isLoading && hasAttemptedStart && !error && (
-          <div className="absolute inset-0 flex items-center justify-center bg-black/50">
-            <div className="text-white text-lg">Initializing camera...</div>
-          </div>
-        )}
+        {/* Hidden canvas for capture */}
+        <canvas ref={canvasRef} className="hidden" />
       </div>
 
-      {/* Controls */}
-      <div className="bg-black/90 p-4 space-y-3">
-        {/* Top row: View template and tool toggles */}
-        {isActive && (
-          <div className="flex items-center gap-2 max-w-2xl mx-auto">
-            {/* View template selector */}
-            <div className="flex items-center gap-2 flex-1">
-              <Tag className="w-4 h-4 text-white" />
-              <Select value={selectedViewTemplate} onValueChange={setSelectedViewTemplate}>
-                <SelectTrigger className="bg-white/10 text-white border-white/20 h-10">
-                  <SelectValue placeholder="Select view" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="">No template</SelectItem>
-                  {VIEW_TEMPLATES.map((template) => (
-                    <SelectItem key={template} value={template}>
-                      {template}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Guides toggle */}
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setGuidesEnabled(!guidesEnabled)}
-              className={`text-white hover:bg-white/20 touch-target ${
-                guidesEnabled ? 'bg-white/20' : ''
-              }`}
-              title="Toggle alignment guides"
-            >
-              <Grid3x3 className="w-4 h-4" />
-            </Button>
-
-            {/* Ghost overlay toggle */}
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleGhostToggle}
-              className={`text-white hover:bg-white/20 touch-target ${
-                ghostEnabled ? 'bg-white/20' : ''
-              }`}
-              title="Toggle ghost overlay"
-            >
-              <Ghost className="w-4 h-4" />
-            </Button>
-          </div>
-        )}
-
-        {/* Ghost opacity slider */}
-        {ghostEnabled && ghostPhotoId && isActive && (
-          <div className="flex items-center gap-3 max-w-2xl mx-auto">
-            <span className="text-white text-sm whitespace-nowrap">Opacity:</span>
-            <Slider
-              value={[ghostOpacity]}
-              onValueChange={(values) => setGhostOpacity(values[0])}
-              min={0}
-              max={100}
-              step={5}
-              className="flex-1"
-            />
-            <span className="text-white text-sm w-12 text-right">{ghostOpacity}%</span>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setShowGhostPicker(true)}
-              className="text-white hover:bg-white/20 text-xs"
-            >
-              Change
-            </Button>
-          </div>
-        )}
-
-        {/* Main capture controls */}
-        <div className="flex items-center justify-between max-w-2xl mx-auto">
-          <Button
-            variant="ghost"
-            size="lg"
-            onClick={onClose}
-            className="text-white hover:bg-white/10 touch-target-lg"
-          >
-            <X className="w-6 h-6" />
-          </Button>
-
-          <Button
-            size="lg"
-            onClick={handleCapture}
-            disabled={!isActive || isCapturing || isLoading || !patientId || !sessionId}
-            className="w-20 h-20 rounded-full bg-white hover:bg-white/90 touch-target-lg disabled:opacity-50"
-          >
-            <Circle className="w-12 h-12 text-black" fill="currentColor" />
-          </Button>
-
-          <div className="w-[100px]" />
+      {/* Camera options */}
+      {isActive && !isLoading && (
+        <div className="bg-black/50 p-4 space-y-3 relative z-10">
+          <CameraOptionsToggles
+            guidesEnabled={guidesEnabled}
+            onGuidesChange={setGuidesEnabled}
+            ghostEnabled={ghostEnabled}
+            onGhostEnabledChange={setGhostEnabled}
+            ghostOpacity={ghostOpacity}
+            onGhostOpacityChange={setGhostOpacity}
+            onSelectGhostPhoto={() => setShowGhostPicker(true)}
+            hasGhostPhoto={Boolean(ghostPhotoId)}
+            hasSessionPhotos={sessionPhotos.length > 0}
+            selectedViewTemplate={selectedViewTemplate}
+            onViewTemplateChange={setSelectedViewTemplate}
+          />
         </div>
+      )}
 
-        {/* Camera flip toggle */}
-        {isActive && (
-          <div className="flex justify-center">
+      {/* Controls */}
+      <div className="bg-black/50 p-6 flex items-center justify-center gap-4 relative z-10">
+        {isActive && !isLoading && (
+          <>
             <CameraFlipToggle
               currentFacingMode={currentFacingMode}
               onToggle={handleSwitchCamera}
-              disabled={!isActive || isLoading || isCapturing}
+              disabled={isSwitching || isCapturing}
               isLoading={isSwitching}
             />
-          </div>
+
+            <Button
+              onClick={handleCapture}
+              disabled={isCapturing || isSwitching || !hasValidContext}
+              size="lg"
+              className="w-16 h-16 rounded-full p-0 touch-target"
+              variant="outline"
+            >
+              {isCapturing ? (
+                <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+              ) : (
+                <Circle className="w-12 h-12" />
+              )}
+            </Button>
+
+            <div className="w-16" />
+          </>
         )}
 
-        {!patientId || !sessionId ? (
-          <p className="text-center text-destructive text-sm">
-            Cannot capture: patient or session not selected
-          </p>
-        ) : null}
+        {!isActive && !isLoading && !error && (
+          <FallbackCameraCaptureButton
+            onCapture={handleFallbackCapture}
+            onCancel={handleFallbackCancel}
+            onError={handleFallbackError}
+            disabled={!hasValidContext || isFallbackProcessing}
+            isProcessing={isFallbackProcessing}
+          />
+        )}
       </div>
 
-      {/* Ghost overlay picker dialog */}
+      {/* Ghost photo picker dialog */}
       <GhostOverlayPickerDialog
         open={showGhostPicker}
-        onClose={() => setShowGhostPicker(false)}
-        sessionId={sessionId}
+        onOpenChange={setShowGhostPicker}
+        sessionPhotos={sessionPhotos}
         selectedPhotoId={ghostPhotoId}
         onSelectPhoto={handleGhostPhotoSelect}
       />
