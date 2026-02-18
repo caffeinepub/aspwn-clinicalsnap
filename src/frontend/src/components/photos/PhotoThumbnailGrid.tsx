@@ -1,4 +1,4 @@
-// Photo thumbnail grid for a session
+// Photo thumbnail grid for a session with view template badges
 
 import { useAppStore } from '@/lib/state/useAppStore';
 import { uint8ArrayToObjectURL } from '@/lib/media/photoStorage';
@@ -52,6 +52,13 @@ export function PhotoThumbnailGrid({ sessionId, onSelect }: PhotoThumbnailGridPr
                 className="w-full h-full object-cover"
               />
             </button>
+
+            {/* View template badge */}
+            {photo.viewTemplate && (
+              <div className="absolute bottom-1 left-1 bg-black/70 text-white text-xs px-2 py-0.5 rounded pointer-events-none">
+                {photo.viewTemplate}
+              </div>
+            )}
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>

@@ -1,154 +1,166 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Aspen Clinic Snap UI rename + photo viewer, before/after slider, and annotations",
+  "title": "Capture alignment aids, view templates, annotation stamps, and branded PDF export",
   "requirements": [
     {
-      "id": "REQ-23",
-      "summary": "Rename UI text and branding references to “Aspen Clinic Snap” and wire in the new wordmark asset.",
+      "id": "REQ-37",
+      "summary": "Add optional composition alignment guides (grid + crosshair) to the in-app camera capture UI as visual-only overlays.",
       "acceptanceCriteria": [
-        "Browser tab title shows “Aspen Clinic Snap”.",
-        "Any loading/empty-state text that currently says “ClinicalSnap”/“Aspwn ClinicalSnap” is updated to “Aspen Clinic Snap” (English).",
-        "Header branding no longer shows the old app name in alt text.",
-        "Branding Settings default/placeholder clinic name is updated to “Aspen Clinic Snap” (English)."
+        "When the camera is active, the capture UI provides a clearly labeled control (e.g., \"Guides\") to toggle alignment guides on/off.",
+        "When enabled, the camera preview shows non-intrusive overlays suitable for dental photography (e.g., rule-of-thirds grid + center crosshair).",
+        "Alignment guides do not appear in the saved photo data; they are visual overlays only.",
+        "The toggle state is touch-friendly and does not interfere with capture, camera flip, or close actions."
       ],
       "file_operations": [
         {
-          "path": "frontend/index.html",
+          "path": "frontend/src/components/camera/CameraCapturePanel.tsx",
           "operation": "modify",
-          "description": "Update the document <title> to “Aspen Clinic Snap” to satisfy the browser tab title requirement."
+          "description": "Add a touch-friendly \"Guides\" toggle and render visual-only overlay layers (rule-of-thirds grid + center crosshair) above the video preview using pointer-events: none so it does not interfere with capture/flip/close."
         },
         {
-          "path": "frontend/src/App.tsx",
-          "operation": "modify",
-          "description": "Update the initialization/loading UI text to “Loading Aspen Clinic Snap...” and replace any remaining old app-name strings shown to users."
+          "path": "frontend/src/components/camera/CameraAlignmentGuidesOverlay.tsx",
+          "operation": "create",
+          "description": "Create a reusable overlay component that draws a non-intrusive grid and center crosshair for dental photo framing; ensure it is purely visual and never affects captured image data."
         },
         {
-          "path": "frontend/src/components/layout/ClinicalSnapShell.tsx",
+          "path": "frontend/src/index.css",
           "operation": "modify",
-          "description": "Update header branding to use the generated wordmark at frontend/public/assets/generated/aspen-clinic-snap-logo.dim_1024x256.png and update the image alt text to “Aspen Clinic Snap”."
+          "description": "Add minimal utility classes (if needed) for camera overlay layering/opacity and ensuring overlays are non-interactive and readable on dark camera backgrounds."
+        }
+      ]
+    },
+    {
+      "id": "REQ-38",
+      "summary": "Add a selectable before/after ghost overlay alignment aid during camera capture with an opacity slider, visual-only and changeable without leaving capture.",
+      "acceptanceCriteria": [
+        "From the camera capture experience (or immediately before entering it), the user can select a reference photo from the active session to use as the ghost overlay.",
+        "When enabled, the camera preview shows the reference photo aligned to the preview with an opacity slider (e.g., 0–100%).",
+        "The user can turn the ghost overlay off and/or change the reference photo without leaving the capture experience.",
+        "The ghost overlay is visual-only and is not baked into saved photos."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/camera/CameraCapturePanel.tsx",
+          "operation": "modify",
+          "description": "Add a clearly labeled control (e.g., \"Ghost\") to enable/disable the ghost overlay, a lightweight in-capture selector to choose a reference photo from the current session, and an opacity slider (0–100%) controlling a visual-only overlay image layer above the video."
+        },
+        {
+          "path": "frontend/src/components/camera/GhostOverlayPickerDialog.tsx",
+          "operation": "create",
+          "description": "Create an in-capture dialog/sheet component that lists photos from the active session for selection as the ghost reference; selection should not require leaving the camera experience."
+        },
+        {
+          "path": "frontend/src/components/photos/PhotoThumbnailGrid.tsx",
+          "operation": "modify",
+          "description": "If needed to support ghost-selection reuse, expose/compose a compact thumbnail list rendering approach (without adding new routes) that can be embedded in the ghost overlay picker dialog."
+        }
+      ]
+    },
+    {
+      "id": "REQ-39",
+      "summary": "Add standard clinical view templates (Frontal, Left 45°, Right 45°, Occlusal) to guide capture/import and persist the selected template on each photo via IndexedDB.",
+      "acceptanceCriteria": [
+        "The camera capture UI provides a touch-friendly way to pick a view template from a small default list (minimum: Frontal, Left 45°, Right 45°, Occlusal).",
+        "Each captured photo persists the chosen view template value so it is available after reload (IndexedDB persistence).",
+        "Imported photos added to a session can optionally be assigned a view template during import (either per-import batch selection or per-photo selection), and that choice persists after reload.",
+        "The session photo grid and/or full-screen photo viewer displays the photo’s view template label in English when present."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/lib/models.ts",
+          "operation": "modify",
+          "description": "Extend the Photo model to include an optional persisted view template field (e.g., viewTemplate) and define an English-labeled default template set (minimum: Frontal, Left 45°, Right 45°, Occlusal)."
+        },
+        {
+          "path": "frontend/src/components/camera/CameraCapturePanel.tsx",
+          "operation": "modify",
+          "description": "Add a touch-friendly view template picker (dropdown/segmented control) to camera capture controls and pass the selected template value into the photo creation flow so it persists with the saved photo."
+        },
+        {
+          "path": "frontend/src/components/photos/SessionPhotoImportButton.tsx",
+          "operation": "modify",
+          "description": "Add an optional view template assignment during import (batch selection before import, or a lightweight per-file choice) and ensure the chosen template is saved with each imported photo so it persists after reload."
+        },
+        {
+          "path": "frontend/src/components/photos/PhotoThumbnailGrid.tsx",
+          "operation": "modify",
+          "description": "Display the photo’s view template label in English on thumbnails when present (e.g., a small badge/overlay) without obstructing image visibility."
+        },
+        {
+          "path": "frontend/src/components/photos/PhotoViewerOverlay.tsx",
+          "operation": "modify",
+          "description": "Display the selected photo’s view template label in English in the full-screen viewer UI when present (e.g., in the header area) without interfering with annotation controls."
+        },
+        {
+          "path": "frontend/src/lib/media/photoStorage.ts",
+          "operation": "modify",
+          "description": "Update the photo conversion/capture helper usage so the resulting Photo object includes the selected view template metadata prior to persistence (ensure media stays local-only)."
+        }
+      ]
+    },
+    {
+      "id": "REQ-40",
+      "summary": "Add quick-preset annotation stamps (Arrow, Margin line, Prep line) in the full-screen photo viewer annotation experience with persistent storage and undo support.",
+      "acceptanceCriteria": [
+        "The annotation toolbar includes a clearly labeled \"Stamps\" tool/mode that exposes a small set of preset stamps (minimum: Arrow, Margin line, Prep line).",
+        "Tapping a stamp preset and then tapping/dragging on the photo places the stamp reliably and persistently on the photo (saved to IndexedDB and restored after reload).",
+        "Users can remove a stamp annotation using an existing quick correction workflow (e.g., undo last annotation) without clearing all annotations.",
+        "All stamp-related user-facing labels and tooltips are in English."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/lib/models.ts",
+          "operation": "modify",
+          "description": "Extend annotation types to support stamp annotations (e.g., add a 'stamp' variant with data for Arrow/Margin line/Prep line geometry and style) while keeping existing pen/highlight/text behavior intact."
+        },
+        {
+          "path": "frontend/src/components/photos/PhotoAnnotationToolbar.tsx",
+          "operation": "modify",
+          "description": "Add a clearly labeled \"Stamps\" mode/tool section and expose preset choices (minimum: Arrow, Margin line, Prep line) with English titles/tooltips; integrate with existing undo workflow (delete most recent annotation)."
+        },
+        {
+          "path": "frontend/src/components/photos/PhotoAnnotationCanvas.tsx",
+          "operation": "modify",
+          "description": "Implement placing stamps by tap/drag interactions (start/end points in normalized coordinates), render stamps on canvas alongside existing annotations, and persist them via createAnnotation so they restore after reload."
+        },
+        {
+          "path": "frontend/src/components/photos/PhotoViewerOverlay.tsx",
+          "operation": "modify",
+          "description": "Wire the new stamp tool state into the viewer’s annotation flow so stamps can be selected/placed within the existing full-screen annotation experience."
+        }
+      ]
+    },
+    {
+      "id": "REQ-41",
+      "summary": "Add client-side export-to-PDF for a session’s photos including clinic branding (name + optional logo) and session title/date, downloadable without backend upload.",
+      "acceptanceCriteria": [
+        "From the session workflow, the user can trigger an \"Export to PDF\" action for the currently selected session.",
+        "The generated PDF includes (at minimum) the clinic name and (if configured) the clinic logo from Branding Settings, plus the session title/date in English.",
+        "The PDF includes the session’s photos (at least thumbnails or appropriately scaled images) in a readable layout suitable for iPad viewing/printing.",
+        "Export is performed fully on-device/in-browser; no photo data is sent to the Motoko backend during export.",
+        "If export fails, the user sees an English error message and can try again."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/package.json",
+          "operation": "modify",
+          "description": "Add/adjust a client-side PDF generation dependency (e.g., jsPDF or equivalent) needed for on-device PDF export; ensure no network calls are introduced for export."
+        },
+        {
+          "path": "frontend/src/lib/export/sessionPdfExport.ts",
+          "operation": "create",
+          "description": "Implement a browser-only PDF export utility that composes clinic branding (clinic name + optional logo), session title/date (English), and a readable photo layout using locally stored photo data only; return a Blob for download and surface errors for UI handling."
+        },
+        {
+          "path": "frontend/src/components/sessions/SessionTimelinePanel.tsx",
+          "operation": "modify",
+          "description": "Add an \"Export to PDF\" action in the session workflow UI; call the session PDF export utility with the currently selected session/photos and show English success/error toasts with a retry path."
         },
         {
           "path": "frontend/src/components/settings/BrandingSettingsPanel.tsx",
           "operation": "modify",
-          "description": "Update the clinic name input placeholder and default/empty preview fallback copy to use “Aspen Clinic Snap” (English), ensuring the Settings branding default reads correctly."
-        },
-        {
-          "path": "frontend/src/lib/storage/migrations.ts",
-          "operation": "modify",
-          "description": "Update first-run default settings branding clinicName to “Aspen Clinic Snap” so new installs show the correct default clinic name."
-        },
-        {
-          "path": "frontend/src/components/settings/AboutLocalOnlyNote.tsx",
-          "operation": "modify",
-          "description": "Replace “Aspwn ClinicalSnap” occurrences (header/title/footer) with “Aspen Clinic Snap” to ensure About text is in English and reflects the new app name."
-        },
-        {
-          "path": "frontend/public/assets/generated/aspen-clinic-snap-logo.dim_1024x256.png",
-          "operation": "create",
-          "description": "Add the required generated wordmark logo asset (transparent background) and ensure UI references point to this exact file path/filename."
-        }
-      ]
-    },
-    {
-      "id": "REQ-24",
-      "summary": "Add a full-screen photo viewer launched from the session photo grid with touch-friendly zoom/pan and a clear close action, keeping photos local-only.",
-      "acceptanceCriteria": [
-        "From a session’s photo thumbnail grid, tapping a photo opens a full-screen viewer for that photo.",
-        "The full-screen viewer supports pinch-to-zoom and panning (or equivalent touch-friendly zoom/pan controls).",
-        "The viewer has a clear close action that returns the user to the same session context.",
-        "No changes introduce uploading photos to the backend; photos remain local-only."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/components/photos/PhotoThumbnailGrid.tsx",
-          "operation": "modify",
-          "description": "Ensure both thumbnail tap and the “View” menu action open the full-screen viewer by selecting the photo and triggering the viewer UI (no backend changes; local-only)."
-        },
-        {
-          "path": "frontend/src/components/photos/PhotoViewerOverlay.tsx",
-          "operation": "create",
-          "description": "Create a full-screen photo viewer overlay component that reads selectedPhotoId from the app store, renders the full-resolution image, provides a clear Close action, and integrates touch-friendly zoom/pan controls (pinch/pan or equivalent). Use existing shadcn-ui primitives (e.g., dialog/sheet/buttons) by composing them (do not modify frontend/src/components/ui). Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/hooks/usePanZoom.ts",
-          "operation": "create",
-          "description": "Add a reusable hook to implement touch-friendly zoom/pan (pointer events multi-touch + mouse wheel) suitable for iPad, used by the photo viewer to manage transforms and reset behavior."
-        },
-        {
-          "path": "frontend/src/components/layout/ClinicalSnapShell.tsx",
-          "operation": "modify",
-          "description": "Wire PhotoViewerOverlay into the main shell so it can open above the session workflow and close back to the same context without navigation."
-        }
-      ]
-    },
-    {
-      "id": "REQ-25",
-      "summary": "Provide a Before/After comparison view in the main patient/session workflow, including a slider-based swipe-reveal comparison mode using locally stored photos.",
-      "acceptanceCriteria": [
-        "The UI provides a Before/After comparison view for the selected patient/session context.",
-        "The comparison view includes a slider-based swipe-reveal mode that lets the user drag to reveal before vs after.",
-        "User-facing labels and instructions for the comparison UI are in English.",
-        "No backend storage of photos is added; comparison uses locally stored session photos."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/components/viewer/BeforeAfterCompareDialog.tsx",
-          "operation": "create",
-          "description": "Create a comparison dialog/sheet for the current session context that lets users pick a Before photo and an After photo from locally stored session photos, and provides a slider-based swipe-reveal mode with English labels/instructions. Compose shadcn-ui components (do not modify frontend/src/components/ui). Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/components/viewer/BeforeAfterSlider.tsx",
-          "operation": "create",
-          "description": "Implement the swipe-reveal slider UI (drag handle to reveal before vs after) with touch-friendly dragging, designed for iPad. Keep logic frontend-only and based on existing locally stored photos."
-        },
-        {
-          "path": "frontend/src/components/viewer/SessionTimelinePanel.tsx",
-          "operation": "modify",
-          "description": "Add an entry point in the session UI (e.g., a Compare button per session when enough photos exist) to open the BeforeAfterCompareDialog for that session, keeping it within the single-screen workflow and in English."
-        },
-        {
-          "path": "frontend/src/lib/state/useAppStore.ts",
-          "operation": "modify",
-          "description": "If needed for the comparison UX, add minimal UI state helpers for opening/closing the comparison dialog and/or setting the active pairing selection while continuing to rely on local IndexedDB-backed data only (no backend storage)."
-        }
-      ]
-    },
-    {
-      "id": "REQ-26",
-      "summary": "Expose photo annotation tools (pen, highlight, text) in the photo viewing UI with edit/delete and persistence via local storage.",
-      "acceptanceCriteria": [
-        "When viewing a photo (including in the expanded full-screen photo viewer), the user can open annotation tools.",
-        "Annotation tools include: pen/freehand, highlight (semi-transparent), and text notes.",
-        "Annotations can be edited and/or removed after being created (where applicable).",
-        "Annotations persist after page reload and re-open correctly on the same photo.",
-        "All annotation UI text is English."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/components/photos/PhotoAnnotationToolbar.tsx",
-          "operation": "create",
-          "description": "Create an annotation toolbar for pen, highlight, and text modes with English labels and controls for color/size, plus actions for delete/clear/undo as applicable. Compose shadcn-ui components (do not modify frontend/src/components/ui). Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/components/photos/PhotoAnnotationCanvas.tsx",
-          "operation": "create",
-          "description": "Create a canvas/overlay layer that renders existing annotations for the current photo and supports creating new pen/highlight strokes and placing/editing text annotations using pointer/touch events; store annotation geometry in normalized coordinates so it reloads correctly across sizes."
-        },
-        {
-          "path": "frontend/src/components/photos/PhotoViewerOverlay.tsx",
-          "operation": "modify",
-          "description": "Integrate the annotation UI into the full-screen photo viewer: add an “Annotate” toggle/button, display the annotation overlay on top of the photo, and ensure close returns to session context while keeping selected photo/annotations consistent."
-        },
-        {
-          "path": "frontend/src/lib/state/useAppStore.ts",
-          "operation": "modify",
-          "description": "Ensure the annotation UI can create/update/delete annotations via existing Zustand actions and that any missing helper selectors (e.g., get annotations by photoId) are added without changing persistence semantics (IndexedDB local-only)."
-        },
-        {
-          "path": "frontend/src/lib/models.ts",
-          "operation": "modify",
-          "description": "If required by the UI implementation, adjust or extend annotation typing minimally (without breaking stored data) to support editing behaviors (e.g., text edit/move metadata) while keeping types pen/highlight/text and local persistence."
+          "description": "Ensure branding settings required by export are clearly saved/available (clinic name and logo selection). If needed, adjust preview/validation so clinic name is always present in English for the export header."
         }
       ]
     }

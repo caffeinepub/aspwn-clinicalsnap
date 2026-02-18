@@ -1,4 +1,4 @@
-// Before/After comparison dialog with photo selection and slider view
+// Before/After comparison dialog with photo selection, slider view, and fullscreen mode
 
 import { useState } from 'react';
 import { useAppStore } from '@/lib/state/useAppStore';
@@ -13,7 +13,8 @@ import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { uint8ArrayToObjectURL } from '@/lib/media/photoStorage';
 import { BeforeAfterSlider } from './BeforeAfterSlider';
-import { Check } from 'lucide-react';
+import { BeforeAfterFullscreenOverlay } from './BeforeAfterFullscreenOverlay';
+import { Check, Maximize2 } from 'lucide-react';
 
 interface BeforeAfterCompareDialogProps {
   open: boolean;
@@ -29,6 +30,7 @@ export function BeforeAfterCompareDialog({
   const { photos } = useAppStore();
   const [beforePhotoId, setBeforePhotoId] = useState<string | null>(null);
   const [afterPhotoId, setAfterPhotoId] = useState<string | null>(null);
+  const [showFullscreen, setShowFullscreen] = useState(false);
 
   const sessionPhotos = photos
     .filter((p) => p.sessionId === sessionId)
@@ -39,126 +41,154 @@ export function BeforeAfterCompareDialog({
 
   const showComparison = beforePhoto && afterPhoto;
 
+  const beforeImageUrl = beforePhoto ? uint8ArrayToObjectURL(beforePhoto.imageData) : '';
+  const afterImageUrl = afterPhoto ? uint8ArrayToObjectURL(afterPhoto.imageData) : '';
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-6xl h-[90vh] flex flex-col">
-        <DialogHeader>
-          <DialogTitle>Before/After Comparison</DialogTitle>
-          <DialogDescription>
-            Select a before photo and an after photo to compare
-          </DialogDescription>
-        </DialogHeader>
+    <>
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="max-w-6xl h-[90vh] flex flex-col">
+          <DialogHeader>
+            <DialogTitle>Before/After Comparison</DialogTitle>
+            <DialogDescription>
+              Select a before photo and an after photo to compare
+            </DialogDescription>
+          </DialogHeader>
 
-        {!showComparison ? (
-          <div className="flex-1 overflow-hidden">
-            <div className="grid grid-cols-2 gap-4 h-full">
-              {/* Before selection */}
-              <div className="flex flex-col">
-                <h3 className="font-semibold mb-3">Before Photo</h3>
-                <ScrollArea className="flex-1">
-                  <div className="grid grid-cols-2 gap-2 pr-4">
-                    {sessionPhotos.map((photo) => {
-                      const thumbnailUrl = uint8ArrayToObjectURL(photo.thumbnailData);
-                      const isSelected = beforePhotoId === photo.id;
+          {!showComparison ? (
+            <div className="flex-1 overflow-hidden">
+              <div className="grid grid-cols-2 gap-4 h-full">
+                {/* Before selection */}
+                <div className="flex flex-col">
+                  <h3 className="font-semibold mb-3">Before Photo</h3>
+                  <ScrollArea className="flex-1">
+                    <div className="grid grid-cols-2 gap-2 pr-4">
+                      {sessionPhotos.map((photo) => {
+                        const thumbnailUrl = uint8ArrayToObjectURL(photo.thumbnailData);
+                        const isSelected = beforePhotoId === photo.id;
 
-                      return (
-                        <button
-                          key={photo.id}
-                          onClick={() => setBeforePhotoId(photo.id)}
-                          className={`relative aspect-square rounded-lg overflow-hidden border-2 transition-all ${
-                            isSelected
-                              ? 'border-primary ring-2 ring-primary'
-                              : 'border-transparent hover:border-muted-foreground'
-                          }`}
-                        >
-                          <img
-                            src={thumbnailUrl}
-                            alt="Before"
-                            className="w-full h-full object-cover"
-                          />
-                          {isSelected && (
-                            <div className="absolute top-1 right-1 bg-primary text-primary-foreground rounded-full p-1">
-                              <Check className="w-4 h-4" />
-                            </div>
-                          )}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </ScrollArea>
+                        return (
+                          <button
+                            key={photo.id}
+                            onClick={() => setBeforePhotoId(photo.id)}
+                            className={`relative aspect-square rounded-lg overflow-hidden border-2 transition-all touch-target ${
+                              isSelected
+                                ? 'border-primary ring-2 ring-primary'
+                                : 'border-transparent hover:border-muted-foreground'
+                            }`}
+                          >
+                            <img
+                              src={thumbnailUrl}
+                              alt="Before"
+                              className="w-full h-full object-cover"
+                            />
+                            {isSelected && (
+                              <div className="absolute top-1 right-1 bg-primary text-primary-foreground rounded-full p-1">
+                                <Check className="w-4 h-4" />
+                              </div>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </ScrollArea>
+                </div>
+
+                {/* After selection */}
+                <div className="flex flex-col">
+                  <h3 className="font-semibold mb-3">After Photo</h3>
+                  <ScrollArea className="flex-1">
+                    <div className="grid grid-cols-2 gap-2 pr-4">
+                      {sessionPhotos.map((photo) => {
+                        const thumbnailUrl = uint8ArrayToObjectURL(photo.thumbnailData);
+                        const isSelected = afterPhotoId === photo.id;
+
+                        return (
+                          <button
+                            key={photo.id}
+                            onClick={() => setAfterPhotoId(photo.id)}
+                            className={`relative aspect-square rounded-lg overflow-hidden border-2 transition-all touch-target ${
+                              isSelected
+                                ? 'border-primary ring-2 ring-primary'
+                                : 'border-transparent hover:border-muted-foreground'
+                            }`}
+                          >
+                            <img
+                              src={thumbnailUrl}
+                              alt="After"
+                              className="w-full h-full object-cover"
+                            />
+                            {isSelected && (
+                              <div className="absolute top-1 right-1 bg-primary text-primary-foreground rounded-full p-1">
+                                <Check className="w-4 h-4" />
+                              </div>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </ScrollArea>
+                </div>
               </div>
 
-              {/* After selection */}
-              <div className="flex flex-col">
-                <h3 className="font-semibold mb-3">After Photo</h3>
-                <ScrollArea className="flex-1">
-                  <div className="grid grid-cols-2 gap-2 pr-4">
-                    {sessionPhotos.map((photo) => {
-                      const thumbnailUrl = uint8ArrayToObjectURL(photo.thumbnailData);
-                      const isSelected = afterPhotoId === photo.id;
-
-                      return (
-                        <button
-                          key={photo.id}
-                          onClick={() => setAfterPhotoId(photo.id)}
-                          className={`relative aspect-square rounded-lg overflow-hidden border-2 transition-all ${
-                            isSelected
-                              ? 'border-primary ring-2 ring-primary'
-                              : 'border-transparent hover:border-muted-foreground'
-                          }`}
-                        >
-                          <img
-                            src={thumbnailUrl}
-                            alt="After"
-                            className="w-full h-full object-cover"
-                          />
-                          {isSelected && (
-                            <div className="absolute top-1 right-1 bg-primary text-primary-foreground rounded-full p-1">
-                              <Check className="w-4 h-4" />
-                            </div>
-                          )}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </ScrollArea>
+              <div className="mt-4 flex justify-end">
+                <Button
+                  onClick={() => {
+                    // Comparison view will show automatically when both are selected
+                  }}
+                  disabled={!beforePhotoId || !afterPhotoId}
+                  className="touch-target"
+                >
+                  Compare Photos
+                </Button>
               </div>
             </div>
+          ) : (
+            <div className="flex-1 overflow-hidden flex flex-col">
+              <div className="flex-1 min-h-0">
+                <BeforeAfterSlider
+                  beforeImageUrl={beforeImageUrl}
+                  afterImageUrl={afterImageUrl}
+                />
+              </div>
+              <div className="mt-4 flex justify-between gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setBeforePhotoId(null);
+                    setAfterPhotoId(null);
+                  }}
+                  className="touch-target"
+                >
+                  Select Different Photos
+                </Button>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowFullscreen(true)}
+                    className="touch-target"
+                  >
+                    <Maximize2 className="w-4 h-4 mr-2" />
+                    Full Screen
+                  </Button>
+                  <Button onClick={() => onOpenChange(false)} className="touch-target">
+                    Close
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
-            <div className="mt-4 flex justify-end">
-              <Button
-                onClick={() => {
-                  if (beforePhotoId && afterPhotoId) {
-                    // Trigger comparison view
-                  }
-                }}
-                disabled={!beforePhotoId || !afterPhotoId}
-              >
-                Compare Photos
-              </Button>
-            </div>
-          </div>
-        ) : (
-          <div className="flex-1 overflow-hidden flex flex-col">
-            <BeforeAfterSlider
-              beforeImageUrl={uint8ArrayToObjectURL(beforePhoto.imageData)}
-              afterImageUrl={uint8ArrayToObjectURL(afterPhoto.imageData)}
-            />
-            <div className="mt-4 flex justify-between">
-              <Button
-                variant="outline"
-                onClick={() => {
-                  setBeforePhotoId(null);
-                  setAfterPhotoId(null);
-                }}
-              >
-                Select Different Photos
-              </Button>
-              <Button onClick={() => onOpenChange(false)}>Close</Button>
-            </div>
-          </div>
-        )}
-      </DialogContent>
-    </Dialog>
+      {/* Fullscreen overlay */}
+      {showFullscreen && showComparison && (
+        <BeforeAfterFullscreenOverlay
+          beforeImageUrl={beforeImageUrl}
+          afterImageUrl={afterImageUrl}
+          onClose={() => setShowFullscreen(false)}
+        />
+      )}
+    </>
   );
 }

@@ -2,15 +2,11 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-rename-the-app-everywhere-in-the-ui-to-aspen-clinic-snap-including-the-browser-tab-title-app-loading-text-header-branding-alt-text-and-the-default-clinic-branding-name-shown-in-settings",
-      "featureTitle": "Rename the app everywhere in the UI to “Aspen Clinic Snap”, including the browser tab title, app loading text, header branding alt text, and the default clinic branding name shown in Settings.",
+      "featureId": "feature-add-optional-alignment-guides-composition-overlays-to-the-in-app-camera-capture-ui-so-clinicians-can-keep-framing-consistent-between-shots",
+      "featureTitle": "Add optional alignment guides (composition overlays) to the in-app camera capture UI so clinicians can keep framing consistent between shots.",
       "files": [
-        "frontend/index.html",
-        "frontend/src/App.tsx",
-        "frontend/src/components/layout/ClinicalSnapShell.tsx",
-        "frontend/src/components/settings/AboutLocalOnlyNote.tsx",
-        "frontend/src/components/settings/BrandingSettingsPanel.tsx",
-        "frontend/src/lib/storage/migrations.ts"
+        "frontend/src/components/camera/CameraAlignmentGuidesOverlay.tsx",
+        "frontend/src/components/camera/CameraCapturePanel.tsx"
       ],
       "components": [
         "camera@1.0.0",
@@ -21,17 +17,41 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-23"
+        "REQ-37"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-make-any-photo-added-to-a-session-expandable-from-the-session-photo-grid-tapping-view-or-the-thumbnail-opens-a-full-screen-photo-viewer-that-supports-closing-and-returning-to-the-session-with-zoom-and-pan-controls-suitable-for-ipad-touch",
-      "featureTitle": "Make any photo added to a session expandable from the session photo grid: tapping “View” or the thumbnail opens a full-screen photo viewer that supports closing and returning to the session, with zoom and pan controls suitable for iPad touch.",
+      "featureId": "feature-add-an-optional-before-after-ghost-overlay-alignment-aid-that-helps-match-framing-by-overlaying-a-chosen-reference-photo-semi-transparently-during-camera-capture",
+      "featureTitle": "Add an optional before/after “ghost overlay” alignment aid that helps match framing by overlaying a chosen reference photo semi-transparently during camera capture.",
       "files": [
-        "frontend/src/components/layout/ClinicalSnapShell.tsx",
+        "frontend/src/components/camera/CameraCapturePanel.tsx",
+        "frontend/src/components/camera/GhostOverlayPickerDialog.tsx",
+        "frontend/src/components/photos/PhotoThumbnailGrid.tsx"
+      ],
+      "components": [
+        "camera@1.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-38"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-add-standard-clinical-view-templates-presets-e-g-frontal-45-occlusal-to-guide-capture-and-organization-including-persisting-the-selected-view-template-on-each-captured-imported-photo",
+      "featureTitle": "Add standard clinical view templates/presets (e.g., frontal, 45°, occlusal) to guide capture and organization, including persisting the selected view template on each captured/imported photo.",
+      "files": [
+        "frontend/src/components/camera/CameraCapturePanel.tsx",
+        "frontend/src/components/photos/PhotoThumbnailGrid.tsx",
         "frontend/src/components/photos/PhotoViewerOverlay.tsx",
-        "frontend/src/hooks/usePanZoom.ts"
+        "frontend/src/components/photos/SessionPhotoImportButton.tsx",
+        "frontend/src/lib/media/photoStorage.ts",
+        "frontend/src/lib/models.ts"
       ],
       "components": [
         "camera@1.0.0",
@@ -42,40 +62,18 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-24"
+        "REQ-39"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-add-a-working-before-after-comparison-view-that-includes-a-slider-swipe-reveal-option-for-comparing-two-photos-accessible-from-the-main-single-screen-workflow-patient-session-context",
-      "featureTitle": "Add a working Before/After comparison view that includes a slider (swipe-reveal) option for comparing two photos, accessible from the main single-screen workflow (patient/session context).",
-      "files": [
-        "frontend/src/components/viewer/BeforeAfterCompareDialog.tsx",
-        "frontend/src/components/viewer/BeforeAfterSlider.tsx",
-        "frontend/src/components/viewer/SessionTimelinePanel.tsx",
-        "frontend/src/lib/state/useAppStore.ts"
-      ],
-      "components": [
-        "camera@1.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-25"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-expose-the-missing-photo-annotation-tools-in-the-ui-so-a-user-can-add-edit-and-delete-annotations-pen-highlight-and-text-on-top-of-a-photo-and-have-those-annotations-persist-and-reload-with-the-photo",
-      "featureTitle": "Expose the missing photo annotation tools in the UI so a user can add, edit, and delete annotations (pen, highlight, and text) on top of a photo and have those annotations persist and reload with the photo.",
+      "featureId": "feature-add-quick-preset-annotation-stamps-for-faster-markups-including-at-least-arrows-margins-and-prep-lines-usable-within-the-full-screen-photo-viewer-annotation-experience",
+      "featureTitle": "Add quick-preset annotation stamps for faster markups, including at least arrows, margins, and prep lines, usable within the full-screen photo viewer annotation experience.",
       "files": [
         "frontend/src/components/photos/PhotoAnnotationCanvas.tsx",
         "frontend/src/components/photos/PhotoAnnotationToolbar.tsx",
         "frontend/src/components/photos/PhotoViewerOverlay.tsx",
-        "frontend/src/lib/state/useAppStore.ts"
+        "frontend/src/lib/models.ts"
       ],
       "components": [
         "camera@1.0.0",
@@ -86,7 +84,26 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-26"
+        "REQ-40"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-add-a-simple-client-side-export-to-pdf-for-session-photos-that-includes-clinic-branding-producing-a-downloadable-branded-pdf-without-uploading-photos-to-the-backend",
+      "featureTitle": "Add a simple client-side export-to-PDF for session photos that includes clinic branding, producing a downloadable branded PDF without uploading photos to the backend.",
+      "files": [
+        "frontend/src/lib/export/sessionPdfExport.ts"
+      ],
+      "components": [
+        "camera@1.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-41"
       ],
       "confidence": "high"
     }

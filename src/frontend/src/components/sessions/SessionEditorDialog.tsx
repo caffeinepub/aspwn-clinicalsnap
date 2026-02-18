@@ -1,7 +1,8 @@
-// Session create/edit dialog with error handling and proper treatment type selection
+// Session create/edit dialog with multi-select treatment type support
 
 import { useState, useEffect } from 'react';
 import { useAppStore } from '@/lib/state/useAppStore';
+import { getSessionTreatmentIds } from '@/lib/models';
 import {
   Dialog,
   DialogContent,
@@ -12,15 +13,10 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { AlertCircle } from 'lucide-react';
+import { AlertCircle, X } from 'lucide-react';
 import type { Session } from '@/lib/models';
 import { format } from 'date-fns';
 
@@ -31,8 +27,6 @@ interface SessionEditorDialogProps {
   session?: Session;
   onSave?: (session: Session) => void;
 }
-
-const NONE_VALUE = '__none__';
 
 export function SessionEditorDialog({
   open,
@@ -45,7 +39,7 @@ export function SessionEditorDialog({
 
   const [title, setTitle] = useState('');
   const [date, setDate] = useState('');
-  const [treatmentTypeId, setTreatmentTypeId] = useState<string>(NONE_VALUE);
+  const [selectedTreatmentIds, setSelectedTreatmentIds] = useState<string[]>([]);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -55,14 +49,26 @@ export function SessionEditorDialog({
       if (session) {
         setTitle(session.title);
         setDate(session.date);
-        setTreatmentTypeId(session.treatmentTypeId || NONE_VALUE);
+        setSelectedTreatmentIds(getSessionTreatmentIds(session));
       } else {
         setTitle(`Visit – ${format(new Date(), 'MMM d, yyyy')}`);
         setDate(format(new Date(), 'yyyy-MM-dd'));
-        setTreatmentTypeId(NONE_VALUE);
+        setSelectedTreatmentIds([]);
       }
     }
   }, [session, open]);
+
+  const handleToggleTreatment = (treatmentId: string) => {
+    setSelectedTreatmentIds((prev) =>
+      prev.includes(treatmentId)
+        ? prev.filter((id) => id !== treatmentId)
+        : [...prev, treatmentId]
+    );
+  };
+
+  const handleClearAll = () => {
+    setSelectedTreatmentIds([]);
+  };
 
   const handleSave = async () => {
     if (!title.trim() || !date) return;
@@ -71,20 +77,18 @@ export function SessionEditorDialog({
     setError(null);
 
     try {
-      const treatmentTypeValue = treatmentTypeId === NONE_VALUE ? undefined : treatmentTypeId;
-
       let savedSession: Session;
       if (session) {
         await updateSession(session.id, {
           title: title.trim(),
           date,
-          treatmentTypeId: treatmentTypeValue,
+          treatmentTypeIds: selectedTreatmentIds,
         });
         savedSession = {
           ...session,
           title: title.trim(),
           date,
-          treatmentTypeId: treatmentTypeValue,
+          treatmentTypeIds: selectedTreatmentIds,
           updatedAt: Date.now(),
         };
       } else {
@@ -92,7 +96,7 @@ export function SessionEditorDialog({
           patientId,
           title: title.trim(),
           date,
-          treatmentTypeId: treatmentTypeValue,
+          treatmentTypeIds: selectedTreatmentIds,
         });
       }
 
@@ -100,7 +104,7 @@ export function SessionEditorDialog({
       onOpenChange(false);
     } catch (err) {
       console.error('Failed to save session:', err);
-      setError('Could not save session. Please try again.');
+      setError('Failed to save session. Please try again.');
     } finally {
       setIsSaving(false);
     }
@@ -108,7 +112,7 @@ export function SessionEditorDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>{session ? 'Edit Session' : 'New Session'}</DialogTitle>
         </DialogHeader>
@@ -122,54 +126,82 @@ export function SessionEditorDialog({
           )}
 
           <div className="space-y-2">
-            <Label htmlFor="title">Session Title *</Label>
+            <Label htmlFor="title">Title</Label>
             <Input
               id="title"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="Visit – Feb 18, 2026"
-              className="touch-target"
+              placeholder="e.g., Initial Consultation"
               disabled={isSaving}
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="date">Date *</Label>
+            <Label htmlFor="date">Date</Label>
             <Input
               id="date"
               type="date"
               value={date}
               onChange={(e) => setDate(e.target.value)}
-              className="touch-target"
               disabled={isSaving}
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="treatment">Treatment Type</Label>
-            <Select
-              value={treatmentTypeId}
-              onValueChange={setTreatmentTypeId}
-              disabled={isSaving}
-            >
-              <SelectTrigger className="touch-target">
-                <SelectValue placeholder="Select treatment type" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value={NONE_VALUE}>None</SelectItem>
-                {treatmentTypes.map((type) => (
-                  <SelectItem key={type.id} value={type.id}>
-                    <div className="flex items-center gap-2">
-                      <div
-                        className="w-3 h-3 rounded-full"
-                        style={{ backgroundColor: type.color }}
+            <div className="flex items-center justify-between">
+              <Label>Treatment Types</Label>
+              {selectedTreatmentIds.length > 0 && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleClearAll}
+                  disabled={isSaving}
+                  className="h-auto py-1 px-2 text-xs"
+                >
+                  <X className="w-3 h-3 mr-1" />
+                  Clear All
+                </Button>
+              )}
+            </div>
+            <ScrollArea className="h-48 border rounded-md">
+              <div className="p-3 space-y-2">
+                {treatmentTypes.length === 0 ? (
+                  <p className="text-sm text-muted-foreground text-center py-4">
+                    No treatment types available
+                  </p>
+                ) : (
+                  treatmentTypes.map((type) => (
+                    <div
+                      key={type.id}
+                      className="flex items-center space-x-3 p-2 rounded hover:bg-muted/50 touch-target"
+                    >
+                      <Checkbox
+                        id={`treatment-${type.id}`}
+                        checked={selectedTreatmentIds.includes(type.id)}
+                        onCheckedChange={() => handleToggleTreatment(type.id)}
+                        disabled={isSaving}
                       />
-                      {type.name}
+                      <label
+                        htmlFor={`treatment-${type.id}`}
+                        className="flex items-center gap-2 flex-1 cursor-pointer"
+                      >
+                        <div
+                          className="w-4 h-4 rounded-full"
+                          style={{ backgroundColor: type.color }}
+                        />
+                        <span className="text-sm">{type.name}</span>
+                      </label>
                     </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+                  ))
+                )}
+              </div>
+            </ScrollArea>
+            {selectedTreatmentIds.length > 0 && (
+              <p className="text-xs text-muted-foreground">
+                {selectedTreatmentIds.length} treatment{selectedTreatmentIds.length !== 1 ? 's' : ''} selected
+              </p>
+            )}
           </div>
         </div>
 
@@ -177,7 +209,6 @@ export function SessionEditorDialog({
           <Button
             variant="outline"
             onClick={() => onOpenChange(false)}
-            className="touch-target"
             disabled={isSaving}
           >
             Cancel
@@ -185,7 +216,6 @@ export function SessionEditorDialog({
           <Button
             onClick={handleSave}
             disabled={!title.trim() || !date || isSaving}
-            className="touch-target"
           >
             {isSaving ? 'Saving...' : 'Save'}
           </Button>

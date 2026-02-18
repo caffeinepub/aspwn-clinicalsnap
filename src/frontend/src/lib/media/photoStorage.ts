@@ -1,15 +1,17 @@
-// Photo capture and storage utilities with validation and error handling
+// Photo capture and storage utilities with validation, error handling, and view template support
 
 export async function captureFileToPhoto(
   file: File,
   sessionId: string,
-  patientId: string
+  patientId: string,
+  viewTemplate?: string
 ): Promise<{
   imageData: Uint8Array;
   thumbnailData: Uint8Array;
   width: number;
   height: number;
   capturedAt: number;
+  viewTemplate?: string;
 }> {
   // Validate file type
   if (!file.type.startsWith('image/')) {
@@ -58,6 +60,7 @@ export async function captureFileToPhoto(
       width: img.width,
       height: img.height,
       capturedAt: Date.now(),
+      viewTemplate,
     };
   } catch (err) {
     console.error('Failed to process image:', err);

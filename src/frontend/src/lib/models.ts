@@ -15,7 +15,8 @@ export interface Session {
   patientId: string;
   title: string;
   date: string; // ISO date string
-  treatmentTypeId?: string;
+  treatmentTypeId?: string; // Legacy single selection (for backward compatibility)
+  treatmentTypeIds?: string[]; // New multi-select field
   voiceMemoId?: string;
   createdAt: number;
   updatedAt: number;
@@ -30,18 +31,19 @@ export interface Photo {
   capturedAt: number;
   width: number;
   height: number;
+  viewTemplate?: string; // Optional view template (e.g., "Frontal", "Left 45°", etc.)
 }
 
 export interface Annotation {
   id: string;
   photoId: string;
-  type: 'pen' | 'highlight' | 'text';
+  type: 'pen' | 'highlight' | 'text' | 'stamp';
   data: AnnotationData;
   createdAt: number;
   updatedAt: number;
 }
 
-export type AnnotationData = PenAnnotation | HighlightAnnotation | TextAnnotation;
+export type AnnotationData = PenAnnotation | HighlightAnnotation | TextAnnotation | StampAnnotation;
 
 export interface PenAnnotation {
   type: 'pen';
@@ -62,6 +64,17 @@ export interface TextAnnotation {
   text: string;
   x: number;
   y: number;
+  color: string;
+  size: number;
+}
+
+export interface StampAnnotation {
+  type: 'stamp';
+  stampType: 'arrow' | 'margin' | 'prep';
+  startX: number;
+  startY: number;
+  endX: number;
+  endY: number;
   color: string;
   size: number;
 }
@@ -117,4 +130,28 @@ export const DEFAULT_TREATMENT_TYPES: Omit<TreatmentType, 'id' | 'createdAt'>[] 
   { name: 'Whitening', color: '#06b6d4' },
   { name: 'Crown', color: '#6366f1' },
   { name: 'Bridge', color: '#14b8a6' },
+  { name: 'Inlay', color: '#f97316' },
+  { name: 'Onlay', color: '#84cc16' },
+  { name: 'Veneerlay', color: '#a855f7' },
 ];
+
+// Default view templates for dental photography
+export const VIEW_TEMPLATES = [
+  'Frontal',
+  'Left 45°',
+  'Right 45°',
+  'Occlusal',
+] as const;
+
+export type ViewTemplate = typeof VIEW_TEMPLATES[number];
+
+// Helper to normalize session treatment IDs (handles legacy single selection)
+export function getSessionTreatmentIds(session: Session): string[] {
+  if (session.treatmentTypeIds && session.treatmentTypeIds.length > 0) {
+    return session.treatmentTypeIds;
+  }
+  if (session.treatmentTypeId) {
+    return [session.treatmentTypeId];
+  }
+  return [];
+}

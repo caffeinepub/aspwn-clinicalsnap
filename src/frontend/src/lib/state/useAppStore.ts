@@ -11,6 +11,7 @@ import type {
   VoiceMemo,
   AppSettings,
 } from '../models';
+import { getSessionTreatmentIds } from '../models';
 import { db } from '../storage/indexedDb';
 
 interface AppState {
@@ -78,6 +79,15 @@ interface AppState {
   updateSettings: (settings: Partial<AppSettings>) => Promise<void>;
 }
 
+// Normalize session on load to ensure treatmentTypeIds is always present
+function normalizeSession(session: Session): Session {
+  const treatmentIds = getSessionTreatmentIds(session);
+  return {
+    ...session,
+    treatmentTypeIds: treatmentIds,
+  };
+}
+
 export const useAppStore = create<AppState>((set, get) => ({
   // Initial state
   patients: [],
@@ -99,7 +109,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   loadData: async () => {
     set({ isLoading: true });
     try {
-      const [patients, sessions, photos, annotations, pairings, treatmentTypes, voiceMemos, settings] =
+      const [patients, sessionsRaw, photos, annotations, pairings, treatmentTypes, voiceMemos, settings] =
         await Promise.all([
           db.getAll('patients'),
           db.getAll('sessions'),
@@ -110,6 +120,9 @@ export const useAppStore = create<AppState>((set, get) => ({
           db.getAll('voiceMemos'),
           db.getSetting('appSettings'),
         ]);
+
+      // Normalize sessions to ensure treatmentTypeIds is present
+      const sessions = sessionsRaw.map(normalizeSession);
 
       set({
         patients,
@@ -197,18 +210,20 @@ export const useAppStore = create<AppState>((set, get) => ({
       createdAt: now,
       updatedAt: now,
     };
+    const normalized = normalizeSession(session);
     await db.put('sessions', session);
-    set((state) => ({ sessions: [...state.sessions, session] }));
-    return session;
+    set((state) => ({ sessions: [...state.sessions, normalized] }));
+    return normalized;
   },
 
   updateSession: async (id, updates) => {
     const session = get().sessions.find((s) => s.id === id);
     if (!session) return;
     const updated = { ...session, ...updates, updatedAt: Date.now() };
+    const normalized = normalizeSession(updated);
     await db.put('sessions', updated);
     set((state) => ({
-      sessions: state.sessions.map((s) => (s.id === id ? updated : s)),
+      sessions: state.sessions.map((s) => (s.id === id ? normalized : s)),
     }));
   },
 

@@ -1,101 +1,129 @@
 {
   "kind": "build_request",
-  "title": "Rename app to Aspen Clinic Snap and add missing photo expand, before/after slider, and annotations UI",
+  "title": "Add capture alignment aids, view templates, annotation stamps, and branded PDF export",
   "projectName": "Aspen Clinic Snap",
   "priority": "normal",
   "requirements": [
     {
-      "id": "REQ-23",
-      "text": "Rename the app everywhere in the UI to “Aspen Clinic Snap”, including the browser tab title, app loading text, header branding alt text, and the default clinic branding name shown in Settings.",
+      "id": "REQ-37",
+      "text": "Add optional alignment guides (composition overlays) to the in-app camera capture UI so clinicians can keep framing consistent between shots.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-4"
+          "msg-4",
+          "msg-6"
         ],
         "quotes": [
-          "First please change name to Aspen Clinic Snap."
+          "• Alignment guides during photo capture so angles stay consistent",
+          "You could try incorporating the features you mentioned be by one"
         ]
       },
       "acceptanceCriteria": [
-        "Browser tab title shows “Aspen Clinic Snap”.",
-        "Any loading/empty-state text that currently says “ClinicalSnap”/“Aspwn ClinicalSnap” is updated to “Aspen Clinic Snap” (English).",
-        "Header branding no longer shows the old app name in alt text.",
-        "Branding Settings default/placeholder clinic name is updated to “Aspen Clinic Snap” (English)."
+        "When the camera is active, the capture UI provides a clearly labeled control (e.g., \"Guides\") to toggle alignment guides on/off.",
+        "When enabled, the camera preview shows non-intrusive overlays suitable for dental photography (e.g., rule-of-thirds grid + center crosshair).",
+        "Alignment guides do not appear in the saved photo data; they are visual overlays only.",
+        "The toggle state is touch-friendly and does not interfere with capture, camera flip, or close actions."
       ]
     },
     {
-      "id": "REQ-24",
-      "text": "Make any photo added to a session expandable from the session photo grid: tapping “View” or the thumbnail opens a full-screen photo viewer that supports closing and returning to the session, with zoom and pan controls suitable for iPad touch.",
+      "id": "REQ-38",
+      "text": "Add an optional before/after “ghost overlay” alignment aid that helps match framing by overlaying a chosen reference photo semi-transparently during camera capture.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-4"
+          "msg-4",
+          "msg-6"
         ],
         "quotes": [
-          "Next make sure the photo we add to a session is expandable."
+          "• A “ghost overlay” feature for before/after alignment",
+          "You could try incorporating the features you mentioned be by one"
         ]
       },
       "acceptanceCriteria": [
-        "From a session’s photo thumbnail grid, tapping a photo opens a full-screen viewer for that photo.",
-        "The full-screen viewer supports pinch-to-zoom and panning (or equivalent touch-friendly zoom/pan controls).",
-        "The viewer has a clear close action that returns the user to the same session context.",
-        "No changes introduce uploading photos to the backend; photos remain local-only."
+        "From the camera capture experience (or immediately before entering it), the user can select a reference photo from the active session to use as the ghost overlay.",
+        "When enabled, the camera preview shows the reference photo aligned to the preview with an opacity slider (e.g., 0–100%).",
+        "The user can turn the ghost overlay off and/or change the reference photo without leaving the capture experience.",
+        "The ghost overlay is visual-only and is not baked into saved photos."
       ]
     },
     {
-      "id": "REQ-25",
-      "text": "Add a working Before/After comparison view that includes a slider (swipe-reveal) option for comparing two photos, accessible from the main single-screen workflow (patient/session context).",
+      "id": "REQ-39",
+      "text": "Add standard clinical view templates/presets (e.g., frontal, 45°, occlusal) to guide capture and organization, including persisting the selected view template on each captured/imported photo.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-4"
+          "msg-4",
+          "msg-6"
         ],
         "quotes": [
-          "Next please add the before and after views with a slider option."
+          "• Standard view templates (frontal, 45°, occlusal etc.)",
+          "You could try incorporating the features you mentioned be by one"
         ]
       },
       "acceptanceCriteria": [
-        "The UI provides a Before/After comparison view for the selected patient/session context.",
-        "The comparison view includes a slider-based swipe-reveal mode that lets the user drag to reveal before vs after.",
-        "User-facing labels and instructions for the comparison UI are in English.",
-        "No backend storage of photos is added; comparison uses locally stored session photos."
+        "The camera capture UI provides a touch-friendly way to pick a view template from a small default list (minimum: Frontal, Left 45°, Right 45°, Occlusal).",
+        "Each captured photo persists the chosen view template value so it is available after reload (IndexedDB persistence).",
+        "Imported photos added to a session can optionally be assigned a view template during import (either per-import batch selection or per-photo selection), and that choice persists after reload.",
+        "The session photo grid and/or full-screen photo viewer displays the photo’s view template label in English when present."
       ]
     },
     {
-      "id": "REQ-26",
-      "text": "Expose the missing photo annotation tools in the UI so a user can add, edit, and delete annotations (pen, highlight, and text) on top of a photo and have those annotations persist and reload with the photo.",
+      "id": "REQ-40",
+      "text": "Add quick-preset annotation stamps for faster markups, including at least arrows, margins, and prep lines, usable within the full-screen photo viewer annotation experience.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-4"
+          "msg-4",
+          "msg-6"
         ],
         "quotes": [
-          "The Annotation part is missing aswell."
+          "• Quick‑preset annotation stamps (arrows, margins, prep lines)",
+          "You could try incorporating the features you mentioned be by one"
         ]
       },
       "acceptanceCriteria": [
-        "When viewing a photo (including in the expanded full-screen photo viewer), the user can open annotation tools.",
-        "Annotation tools include: pen/freehand, highlight (semi-transparent), and text notes.",
-        "Annotations can be edited and/or removed after being created (where applicable).",
-        "Annotations persist after page reload and re-open correctly on the same photo.",
-        "All annotation UI text is English."
+        "The annotation toolbar includes a clearly labeled \"Stamps\" tool/mode that exposes a small set of preset stamps (minimum: Arrow, Margin line, Prep line).",
+        "Tapping a stamp preset and then tapping/dragging on the photo places the stamp reliably and persistently on the photo (saved to IndexedDB and restored after reload).",
+        "Users can remove a stamp annotation using an existing quick correction workflow (e.g., undo last annotation) without clearing all annotations.",
+        "All stamp-related user-facing labels and tooltips are in English."
+      ]
+    },
+    {
+      "id": "REQ-41",
+      "text": "Add a simple client-side export-to-PDF for session photos that includes clinic branding, producing a downloadable branded PDF without uploading photos to the backend.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-4",
+          "msg-6"
+        ],
+        "quotes": [
+          "• A simple export-to-PDF for session photos with your clinic branding",
+          "You could try incorporating the features you mentioned be by one"
+        ]
+      },
+      "acceptanceCriteria": [
+        "From the session workflow, the user can trigger an \"Export to PDF\" action for the currently selected session.",
+        "The generated PDF includes (at minimum) the clinic name and (if configured) the clinic logo from Branding Settings, plus the session title/date in English.",
+        "The PDF includes the session’s photos (at least thumbnails or appropriately scaled images) in a readable layout suitable for iPad viewing/printing.",
+        "Export is performed fully on-device/in-browser; no photo data is sent to the Motoko backend during export.",
+        "If export fails, the user sees an English error message and can try again."
       ]
     }
   ],
   "constraints": [
-    "Frontend must not modify files under frontend/src/components/ui (compose them instead).",
-    "Do not modify files listed as immutable in SYSTEM_CONTEXT.",
-    "Keep photos and clinical media stored locally in the browser only; do not upload photos to the backend."
+    "Do not store or upload patient photos to the backend; all media must remain local-only unless explicitly exported by the user.",
+    "Respect the single-actor backend architecture; no backend changes are required for these features.",
+    "Do not modify any files under frontend/src/components/ui or other immutablePaths; compose existing UI components instead.",
+    "Use English for all user-facing text."
   ],
   "nonGoals": [
-    "Implementing new backend features beyond the existing minimal health/version actor.",
-    "Adding third-party authentication providers (only Internet Identity is supported).",
-    "Adding real-time collaboration or syncing across devices."
+    "Implementing third-party sharing integrations (e.g., WhatsApp API, email providers) beyond browser-native download/share capabilities.",
+    "Adding real-time collaboration or syncing across devices.",
+    "Building a backend media storage service."
   ],
   "imageRequirements": {
-    "required": [
-      "Wide wordmark logo reading “Aspen Clinic Snap”, clean clinical style on transparent background (aspen-clinic-snap-logo.dim_1024x256.png)"
-    ],
+    "required": [],
     "edits": []
   },
   "userProfileUpdate": {

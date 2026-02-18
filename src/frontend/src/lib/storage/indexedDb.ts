@@ -1,7 +1,7 @@
 // IndexedDB persistence layer for all clinical data
 
 const DB_NAME = 'ClinicalSnapDB';
-const DB_VERSION = 1;
+const DB_VERSION = 2; // Bumped for multi-treatment migration
 
 export interface DBSchema {
   patients: Patient;

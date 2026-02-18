@@ -1,11 +1,13 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 9,
+  "projectStateVersion": 17,
   "summary": "Aspwn ClinicalSnap: an iPad (iOS) clinical photography manager prototype for dental/aesthetic clinics, focused on patient profiles, in-app photo capture with session-based organization, before/after comparisons, tagging, annotation, search, export/sharing, and strong on-device privacy.",
   "architectural_notes": [
     "Target platform: iPad (iOS); prototype first (single-screen) with patient list, photo viewer, and before/after comparison.",
     "UI direction: clean clinical minimal; white + soft teal palette; large touch targets for clinical/glove use; support portrait and landscape.",
-    "Data/privacy constraint: store photos locally on-device only unless user exports; add app-open lock (Face ID/PIN)."
+    "Data/privacy constraint: store photos locally on-device only unless user exports; add app-open lock (Face ID/PIN).",
+    "Treatment tagging should support editing after save and allow multi-select (multiple treatment tags per session and/or per photo).",
+    "Consider capture-assist UX additions (alignment guides + optional view templates) to improve shot consistency for before/after comparisons."
   ],
   "known_issues": [
     "Add Session flow is not working (user reports inability to add a new session).",
@@ -14,7 +16,6 @@
     "Annotation tools are missing/not accessible in the current build (user expects draw/highlight/text annotations)."
   ],
   "isFixRequest": false,
-  "imageRequirements": "## Required Images\n- Wide wordmark logo reading “Aspen Clinic Snap”, clean clinical style on transparent background (aspen-clinic-snap-logo.dim_1024x256.png)",
   "existing_features": [
     {
       "id": "feature-create-an-ipad-optimized-responsive-single-screen-prototype-ui-that-simultaneously-supports-1-patient-list-2-photo-session-viewer-for-the-selected-patient-and-3-before-after-comparison-view-side-by-side-and-swipe-reveal-modes-the-screen-must-work-in-both-portrait-and-landscape-with-large-glove-friendly-touch-targets",
@@ -199,6 +200,126 @@
         "REQ-26"
       ],
       "version": 1
+    },
+    {
+      "id": "feature-improve-the-before-after-comparison-experience-so-the-comparison-can-be-viewed-in-an-enlarged-full-screen-mode-while-keeping-a-touch-friendly-slider-interaction",
+      "title": "Improve the Before/After comparison experience so the comparison can be viewed in an enlarged, full-screen mode while keeping a touch-friendly slider interaction.",
+      "reqIds": [
+        "REQ-27"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-clear-camera-flip-front-back-toggle-in-the-in-app-camera-capture-ui-and-ensure-it-works-reliably-when-the-camera-is-active",
+      "title": "Add a clear camera flip (front/back) toggle in the in-app camera capture UI and ensure it works reliably when the camera is active.",
+      "reqIds": [
+        "REQ-28"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-enhance-the-in-app-photo-annotation-experience-in-the-full-screen-photo-viewer-so-that-the-toolbar-controls-tool-type-color-and-size-actually-drive-what-gets-created-on-the-annotation-canvas-and-the-user-can-create-pen-highlight-and-text-annotations-reliably",
+      "title": "Enhance the in-app photo annotation experience in the full-screen Photo Viewer so that the toolbar controls (tool type, color, and size) actually drive what gets created on the annotation canvas, and the user can create pen, highlight, and text annotations reliably.",
+      "reqIds": [
+        "REQ-29"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-improve-annotation-usability-by-adding-at-least-one-quick-correction-workflow-in-the-annotation-ui-e-g-undo-last-annotation-or-delete-a-selected-last-annotation-so-users-can-easily-fix-mistakes-without-clearing-all-annotations",
+      "title": "Improve annotation usability by adding at least one quick correction workflow in the annotation UI (e.g., undo last annotation or delete a selected/last annotation) so users can easily fix mistakes without clearing all annotations.",
+      "reqIds": [
+        "REQ-30"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-the-treatment-options-inlay-onlay-and-veneerlay-to-the-default-treatment-types-so-they-appear-in-the-treatment-type-selection-and-can-be-used-like-existing-treatment-types",
+      "title": "Add the treatment options \"Inlay\", \"Onlay\", and \"Veneerlay\" to the default treatment types so they appear in the Treatment Type selection and can be used like existing treatment types.",
+      "reqIds": [
+        "REQ-31"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-session-data-model-to-support-selecting-multiple-treatment-options-per-session-store-an-array-of-treatment-type-ids-instead-of-a-single-treatmenttypeid-while-preserving-backward-compatibility-with-existing-stored-sessions",
+      "title": "Update the session data model to support selecting multiple treatment options per session (store an array of treatment type IDs instead of a single treatmentTypeId), while preserving backward compatibility with existing stored sessions.",
+      "reqIds": [
+        "REQ-32"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-sessioneditordialog-so-users-can-edit-a-session-s-treatment-selection-and-choose-multiple-treatment-options-in-a-touch-friendly-ui",
+      "title": "Update the SessionEditorDialog so users can edit a session’s treatment selection and choose multiple treatment options in a touch-friendly UI.",
+      "reqIds": [
+        "REQ-33"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-session-timeline-rendering-to-display-multiple-selected-treatment-tags-for-a-session-instead-of-a-single-badge-and-ensure-the-displayed-tags-stay-in-sync-after-edits",
+      "title": "Update session timeline rendering to display multiple selected treatment tags for a session (instead of a single badge) and ensure the displayed tags stay in sync after edits.",
+      "reqIds": [
+        "REQ-34"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-patient-session-search-and-filtering-logic-to-work-with-multi-selected-treatment-tags-on-sessions-a-session-matches-if-it-contains-any-of-the-selected-filter-treatment-types",
+      "title": "Update patient/session search and filtering logic to work with multi-selected treatment tags on sessions (a session matches if it contains any of the selected filter treatment types).",
+      "reqIds": [
+        "REQ-35"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-an-indexeddb-upgrade-path-for-the-multi-treatment-session-field-so-existing-installs-are-migrated-safely-including-any-required-db-version-bump-and-migration-of-stored-session-records",
+      "title": "Add an IndexedDB upgrade path for the multi-treatment session field so existing installs are migrated safely (including any required DB version bump and migration of stored session records).",
+      "reqIds": [
+        "REQ-36"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-optional-alignment-guides-composition-overlays-to-the-in-app-camera-capture-ui-so-clinicians-can-keep-framing-consistent-between-shots",
+      "title": "Add optional alignment guides (composition overlays) to the in-app camera capture UI so clinicians can keep framing consistent between shots.",
+      "reqIds": [
+        "REQ-37"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-an-optional-before-after-ghost-overlay-alignment-aid-that-helps-match-framing-by-overlaying-a-chosen-reference-photo-semi-transparently-during-camera-capture",
+      "title": "Add an optional before/after “ghost overlay” alignment aid that helps match framing by overlaying a chosen reference photo semi-transparently during camera capture.",
+      "reqIds": [
+        "REQ-38"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-standard-clinical-view-templates-presets-e-g-frontal-45-occlusal-to-guide-capture-and-organization-including-persisting-the-selected-view-template-on-each-captured-imported-photo",
+      "title": "Add standard clinical view templates/presets (e.g., frontal, 45°, occlusal) to guide capture and organization, including persisting the selected view template on each captured/imported photo.",
+      "reqIds": [
+        "REQ-39"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-quick-preset-annotation-stamps-for-faster-markups-including-at-least-arrows-margins-and-prep-lines-usable-within-the-full-screen-photo-viewer-annotation-experience",
+      "title": "Add quick-preset annotation stamps for faster markups, including at least arrows, margins, and prep lines, usable within the full-screen photo viewer annotation experience.",
+      "reqIds": [
+        "REQ-40"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-simple-client-side-export-to-pdf-for-session-photos-that-includes-clinic-branding-producing-a-downloadable-branded-pdf-without-uploading-photos-to-the-backend",
+      "title": "Add a simple client-side export-to-PDF for session photos that includes clinic branding, producing a downloadable branded PDF without uploading photos to the backend.",
+      "reqIds": [
+        "REQ-41"
+      ],
+      "version": 1
     }
   ],
   "new_feature_requests": [
@@ -307,6 +428,66 @@
     {
       "id": "AR-30",
       "summary": "Make photos added to a session expandable (tap to view full-screen with zoom/pan) from the session photo grid/viewer",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-31",
+      "summary": "Improve before/after comparison UX: add/upgrade swipe slider comparison and support enlarged/full-screen comparison viewing",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-32",
+      "summary": "Add a camera flip (front/rear) toggle in the in-app camera capture experience",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-33",
+      "summary": "Enhance photo annotation experience (improve/expand existing annotation tools usability and capability beyond current implementation)",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-34",
+      "summary": "Add additional treatment options to the treatment type selector defaults: Inlay, Onlay, Veneerlay",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-35",
+      "summary": "Allow editing previously selected treatment type(s) and support selecting multiple treatment options (multi-select tagging) for a session/photo",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-36",
+      "summary": "Add alignment guides during photo capture to help keep angles/position consistent between shots",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-37",
+      "summary": "Add a before/after \"ghost overlay\" alignment feature to help match framing between images",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-38",
+      "summary": "Add standard clinical view templates/presets (e.g., frontal, 45°, occlusal) to guide capture and organization",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-39",
+      "summary": "Add quick-preset annotation stamps (e.g., arrows, margins, prep lines) for faster marking up photos",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-40",
+      "summary": "Add simple export-to-PDF for session photos with clinic branding",
       "reqIds": [],
       "status": "pending"
     }

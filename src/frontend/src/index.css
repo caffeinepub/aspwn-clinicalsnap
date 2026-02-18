@@ -81,6 +81,11 @@
         @apply min-h-[56px] min-w-[56px];
     }
     
+    /* Extra-large touch target for slider handles and critical touch areas */
+    .touch-target-xl {
+        @apply min-h-[64px] min-w-[64px];
+    }
+    
     /* Clinical spacing */
     .clinical-spacing {
         @apply space-y-4;

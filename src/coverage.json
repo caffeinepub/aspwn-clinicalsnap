@@ -1,87 +1,94 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-18T11:14:53.361Z",
+  "generatedAt": "2026-02-18T12:19:29.378Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 4,
-    "implemented": 4,
+    "total": 5,
+    "implemented": 5,
     "items": [
       {
-        "id": "REQ-23",
-        "summary": "Rename the app everywhere in the UI to “Aspen Clinic Snap”, including the browser tab title, app loading text, header branding alt text, and the default clinic branding name shown in Settings.",
+        "id": "REQ-37",
+        "summary": "Add optional alignment guides (composition overlays) to the in-app camera capture UI so clinicians can keep framing consistent between shots.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/index.html",
-          "frontend/src/App.tsx",
-          "frontend/src/components/layout/ClinicalSnapShell.tsx",
-          "frontend/src/components/settings/BrandingSettingsPanel.tsx",
-          "frontend/src/lib/storage/migrations.ts",
-          "frontend/src/components/settings/AboutLocalOnlyNote.tsx",
-          "frontend/public/assets/generated/aspen-clinic-snap-logo.dim_1024x256.png"
+          "frontend/src/components/camera/CameraCapturePanel.tsx",
+          "frontend/src/components/camera/CameraAlignmentGuidesOverlay.tsx",
+          "frontend/src/index.css"
         ],
         "matchedFiles": [
-          "frontend/index.html",
-          "frontend/src/App.tsx",
-          "frontend/src/components/layout/ClinicalSnapShell.tsx",
-          "frontend/src/components/settings/BrandingSettingsPanel.tsx",
-          "frontend/src/lib/storage/migrations.ts",
-          "frontend/src/components/settings/AboutLocalOnlyNote.tsx",
-          "frontend/public/assets/generated/aspen-clinic-snap-logo.dim_1024x256.png"
+          "frontend/src/components/camera/CameraCapturePanel.tsx",
+          "frontend/src/components/camera/CameraAlignmentGuidesOverlay.tsx"
         ]
       },
       {
-        "id": "REQ-24",
-        "summary": "Make any photo added to a session expandable from the session photo grid: tapping “View” or the thumbnail opens a full-screen photo viewer that supports closing and returning to the session, with zoom and pan controls suitable for iPad touch.",
+        "id": "REQ-38",
+        "summary": "Add an optional before/after “ghost overlay” alignment aid that helps match framing by overlaying a chosen reference photo semi-transparently during camera capture.",
         "status": "implemented",
         "plannedFiles": [
+          "frontend/src/components/camera/CameraCapturePanel.tsx",
+          "frontend/src/components/camera/GhostOverlayPickerDialog.tsx",
+          "frontend/src/components/photos/PhotoThumbnailGrid.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/components/camera/CameraCapturePanel.tsx",
+          "frontend/src/components/camera/GhostOverlayPickerDialog.tsx",
+          "frontend/src/components/photos/PhotoThumbnailGrid.tsx"
+        ]
+      },
+      {
+        "id": "REQ-39",
+        "summary": "Add standard clinical view templates/presets (e.g., frontal, 45°, occlusal) to guide capture and organization, including persisting the selected view template on each captured/imported photo.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/lib/models.ts",
+          "frontend/src/components/camera/CameraCapturePanel.tsx",
+          "frontend/src/components/photos/SessionPhotoImportButton.tsx",
           "frontend/src/components/photos/PhotoThumbnailGrid.tsx",
           "frontend/src/components/photos/PhotoViewerOverlay.tsx",
-          "frontend/src/hooks/usePanZoom.ts",
-          "frontend/src/components/layout/ClinicalSnapShell.tsx"
+          "frontend/src/lib/media/photoStorage.ts"
         ],
         "matchedFiles": [
+          "frontend/src/lib/models.ts",
+          "frontend/src/components/camera/CameraCapturePanel.tsx",
+          "frontend/src/components/photos/SessionPhotoImportButton.tsx",
+          "frontend/src/components/photos/PhotoThumbnailGrid.tsx",
           "frontend/src/components/photos/PhotoViewerOverlay.tsx",
-          "frontend/src/hooks/usePanZoom.ts",
-          "frontend/src/components/layout/ClinicalSnapShell.tsx"
+          "frontend/src/lib/media/photoStorage.ts"
         ]
       },
       {
-        "id": "REQ-25",
-        "summary": "Add a working Before/After comparison view that includes a slider (swipe-reveal) option for comparing two photos, accessible from the main single-screen workflow (patient/session context).",
+        "id": "REQ-40",
+        "summary": "Add quick-preset annotation stamps for faster markups, including at least arrows, margins, and prep lines, usable within the full-screen photo viewer annotation experience.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/components/viewer/BeforeAfterCompareDialog.tsx",
-          "frontend/src/components/viewer/BeforeAfterSlider.tsx",
-          "frontend/src/components/viewer/SessionTimelinePanel.tsx",
-          "frontend/src/lib/state/useAppStore.ts"
+          "frontend/src/lib/models.ts",
+          "frontend/src/components/photos/PhotoAnnotationToolbar.tsx",
+          "frontend/src/components/photos/PhotoAnnotationCanvas.tsx",
+          "frontend/src/components/photos/PhotoViewerOverlay.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/components/viewer/BeforeAfterCompareDialog.tsx",
-          "frontend/src/components/viewer/BeforeAfterSlider.tsx",
-          "frontend/src/components/viewer/SessionTimelinePanel.tsx",
-          "frontend/src/lib/state/useAppStore.ts"
+          "frontend/src/lib/models.ts",
+          "frontend/src/components/photos/PhotoAnnotationToolbar.tsx",
+          "frontend/src/components/photos/PhotoAnnotationCanvas.tsx",
+          "frontend/src/components/photos/PhotoViewerOverlay.tsx"
         ]
       },
       {
-        "id": "REQ-26",
-        "summary": "Expose the missing photo annotation tools in the UI so a user can add, edit, and delete annotations (pen, highlight, and text) on top of a photo and have those annotations persist and reload with the photo.",
+        "id": "REQ-41",
+        "summary": "Add a simple client-side export-to-PDF for session photos that includes clinic branding, producing a downloadable branded PDF without uploading photos to the backend.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/components/photos/PhotoAnnotationToolbar.tsx",
-          "frontend/src/components/photos/PhotoAnnotationCanvas.tsx",
-          "frontend/src/components/photos/PhotoViewerOverlay.tsx",
-          "frontend/src/lib/state/useAppStore.ts",
-          "frontend/src/lib/models.ts"
+          "frontend/package.json",
+          "frontend/src/lib/export/sessionPdfExport.ts",
+          "frontend/src/components/sessions/SessionTimelinePanel.tsx",
+          "frontend/src/components/settings/BrandingSettingsPanel.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/components/photos/PhotoAnnotationToolbar.tsx",
-          "frontend/src/components/photos/PhotoAnnotationCanvas.tsx",
-          "frontend/src/components/photos/PhotoViewerOverlay.tsx",
-          "frontend/src/lib/state/useAppStore.ts"
+          "frontend/src/lib/export/sessionPdfExport.ts"
         ]
       }
     ]
@@ -91,21 +98,18 @@
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/index.html",
-    "frontend/public/assets/generated/aspen-clinic-snap-logo.dim_1024x256.png",
-    "frontend/src/App.tsx",
-    "frontend/src/components/layout/ClinicalSnapShell.tsx",
+    "frontend/src/components/camera/CameraAlignmentGuidesOverlay.tsx",
+    "frontend/src/components/camera/CameraCapturePanel.tsx",
+    "frontend/src/components/camera/GhostOverlayPickerDialog.tsx",
     "frontend/src/components/photos/PhotoAnnotationCanvas.tsx",
     "frontend/src/components/photos/PhotoAnnotationToolbar.tsx",
+    "frontend/src/components/photos/PhotoThumbnailGrid.tsx",
     "frontend/src/components/photos/PhotoViewerOverlay.tsx",
-    "frontend/src/components/settings/AboutLocalOnlyNote.tsx",
-    "frontend/src/components/settings/BrandingSettingsPanel.tsx",
-    "frontend/src/components/viewer/BeforeAfterCompareDialog.tsx",
-    "frontend/src/components/viewer/BeforeAfterSlider.tsx",
+    "frontend/src/components/photos/SessionPhotoImportButton.tsx",
     "frontend/src/components/viewer/SessionTimelinePanel.tsx",
-    "frontend/src/hooks/usePanZoom.ts",
-    "frontend/src/lib/state/useAppStore.ts",
-    "frontend/src/lib/storage/migrations.ts",
+    "frontend/src/lib/export/sessionPdfExport.ts",
+    "frontend/src/lib/media/photoStorage.ts",
+    "frontend/src/lib/models.ts",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

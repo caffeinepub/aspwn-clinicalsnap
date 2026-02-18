@@ -1,13 +1,26 @@
-// Full-screen camera capture interface with robust permission handling and user-initiated start
+// Full-screen camera capture interface with alignment guides, ghost overlay, view templates, and robust permission handling
 
 import { useEffect, useState } from 'react';
 import { useCamera } from '@/camera/useCamera';
 import { useAppStore } from '@/lib/state/useAppStore';
+import { uint8ArrayToObjectURL } from '@/lib/media/photoStorage';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Camera, X, RotateCw, Circle, AlertCircle } from 'lucide-react';
+import { Camera, X, Circle, AlertCircle, Grid3x3, Ghost, Tag } from 'lucide-react';
 import { captureFileToPhoto } from '@/lib/media/photoStorage';
 import { toast } from 'sonner';
+import { CameraFlipToggle } from './CameraFlipToggle';
+import { CameraAlignmentGuidesOverlay } from './CameraAlignmentGuidesOverlay';
+import { GhostOverlayPickerDialog } from './GhostOverlayPickerDialog';
+import { VIEW_TEMPLATES } from '@/lib/models';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Slider } from '@/components/ui/slider';
 
 interface CameraCapturePanelProps {
   sessionId: string;
@@ -16,9 +29,23 @@ interface CameraCapturePanelProps {
 }
 
 export function CameraCapturePanel({ sessionId, patientId, onClose }: CameraCapturePanelProps) {
-  const { createPhoto } = useAppStore();
+  const { createPhoto, photos } = useAppStore();
   const [isCapturing, setIsCapturing] = useState(false);
   const [hasAttemptedStart, setHasAttemptedStart] = useState(false);
+  const [isSwitching, setIsSwitching] = useState(false);
+  const [switchError, setSwitchError] = useState<string | null>(null);
+
+  // Alignment guides state
+  const [guidesEnabled, setGuidesEnabled] = useState(false);
+
+  // Ghost overlay state
+  const [ghostEnabled, setGhostEnabled] = useState(false);
+  const [ghostPhotoId, setGhostPhotoId] = useState<string | null>(null);
+  const [ghostOpacity, setGhostOpacity] = useState(50);
+  const [showGhostPicker, setShowGhostPicker] = useState(false);
+
+  // View template state
+  const [selectedViewTemplate, setSelectedViewTemplate] = useState<string>('');
 
   const {
     isActive,
@@ -40,6 +67,10 @@ export function CameraCapturePanel({ sessionId, patientId, onClose }: CameraCapt
     quality: 0.9,
   });
 
+  // Get ghost photo data
+  const ghostPhoto = ghostPhotoId ? photos.find((p) => p.id === ghostPhotoId) : null;
+  const ghostImageUrl = ghostPhoto ? uint8ArrayToObjectURL(ghostPhoto.imageData) : null;
+
   // Cleanup on unmount
   useEffect(() => {
     return () => {
@@ -52,7 +83,6 @@ export function CameraCapturePanel({ sessionId, patientId, onClose }: CameraCapt
     if (isLoading && hasAttemptedStart) {
       const timeout = setTimeout(() => {
         if (isLoading && !isActive && !error) {
-          // Force a retry to break out of stuck loading state
           retry();
         }
       }, 10000);
@@ -69,9 +99,30 @@ export function CameraCapturePanel({ sessionId, patientId, onClose }: CameraCapt
   };
 
   const handleRetry = async () => {
+    setSwitchError(null);
     const success = await retry();
     if (!success) {
       toast.error('Failed to start camera');
+    }
+  };
+
+  const handleSwitchCamera = async () => {
+    setSwitchError(null);
+    setIsSwitching(true);
+    try {
+      const success = await switchCamera();
+      if (!success) {
+        setSwitchError('Unable to switch cameras. Your device may only have one camera.');
+        toast.error('Failed to switch camera');
+      } else {
+        toast.success(`Switched to ${currentFacingMode === 'user' ? 'back' : 'front'} camera`);
+      }
+    } catch (err) {
+      console.error('Switch camera error:', err);
+      setSwitchError('Camera switching is not supported on this device.');
+      toast.error('Camera switching not supported');
+    } finally {
+      setIsSwitching(false);
     }
   };
 
@@ -90,6 +141,7 @@ export function CameraCapturePanel({ sessionId, patientId, onClose }: CameraCapt
           ...photoData,
           sessionId,
           patientId,
+          viewTemplate: selectedViewTemplate || undefined,
         });
         toast.success('Photo captured successfully');
         onClose();
@@ -101,6 +153,25 @@ export function CameraCapturePanel({ sessionId, patientId, onClose }: CameraCapt
       toast.error('Failed to save photo. Please try again.');
     } finally {
       setIsCapturing(false);
+    }
+  };
+
+  const handleGhostToggle = () => {
+    if (!ghostEnabled && !ghostPhotoId) {
+      // Open picker if no photo selected
+      setShowGhostPicker(true);
+    } else {
+      setGhostEnabled(!ghostEnabled);
+    }
+  };
+
+  const handleGhostPhotoSelect = (photoId: string) => {
+    if (photoId) {
+      setGhostPhotoId(photoId);
+      setGhostEnabled(true);
+    } else {
+      setGhostPhotoId(null);
+      setGhostEnabled(false);
     }
   };
 
@@ -170,6 +241,23 @@ export function CameraCapturePanel({ sessionId, patientId, onClose }: CameraCapt
         />
         <canvas ref={canvasRef} className="hidden" />
 
+        {/* Ghost overlay */}
+        {ghostEnabled && ghostImageUrl && isActive && (
+          <div
+            className="absolute inset-0 pointer-events-none"
+            style={{ opacity: ghostOpacity / 100 }}
+          >
+            <img
+              src={ghostImageUrl}
+              alt="Ghost overlay"
+              className="w-full h-full object-cover"
+            />
+          </div>
+        )}
+
+        {/* Alignment guides overlay */}
+        <CameraAlignmentGuidesOverlay enabled={guidesEnabled && isActive} />
+
         {/* Error overlay */}
         {errorInfo && (
           <div className="absolute inset-0 flex items-center justify-center p-4 bg-black/90">
@@ -191,7 +279,17 @@ export function CameraCapturePanel({ sessionId, patientId, onClose }: CameraCapt
           </div>
         )}
 
-        {/* Initial start prompt (iOS/Safari friendly) */}
+        {/* Switch error notification */}
+        {switchError && isActive && (
+          <div className="absolute top-4 left-1/2 -translate-x-1/2 max-w-md px-4">
+            <Alert variant="destructive" className="bg-destructive/90 backdrop-blur">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription className="text-sm">{switchError}</AlertDescription>
+            </Alert>
+          </div>
+        )}
+
+        {/* Initial start prompt */}
         {!hasAttemptedStart && !isActive && !error && (
           <div className="absolute inset-0 flex items-center justify-center p-4 bg-black/80">
             <div className="text-center space-y-4 max-w-md">
@@ -210,7 +308,7 @@ export function CameraCapturePanel({ sessionId, patientId, onClose }: CameraCapt
           </div>
         )}
 
-        {/* Loading overlay (only after user has attempted start) */}
+        {/* Loading overlay */}
         {isLoading && hasAttemptedStart && !error && (
           <div className="absolute inset-0 flex items-center justify-center bg-black/50">
             <div className="text-white text-lg">Initializing camera...</div>
@@ -219,7 +317,81 @@ export function CameraCapturePanel({ sessionId, patientId, onClose }: CameraCapt
       </div>
 
       {/* Controls */}
-      <div className="bg-black/90 p-6 space-y-4">
+      <div className="bg-black/90 p-4 space-y-3">
+        {/* Top row: View template and tool toggles */}
+        {isActive && (
+          <div className="flex items-center gap-2 max-w-2xl mx-auto">
+            {/* View template selector */}
+            <div className="flex items-center gap-2 flex-1">
+              <Tag className="w-4 h-4 text-white" />
+              <Select value={selectedViewTemplate} onValueChange={setSelectedViewTemplate}>
+                <SelectTrigger className="bg-white/10 text-white border-white/20 h-10">
+                  <SelectValue placeholder="Select view" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">No template</SelectItem>
+                  {VIEW_TEMPLATES.map((template) => (
+                    <SelectItem key={template} value={template}>
+                      {template}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Guides toggle */}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setGuidesEnabled(!guidesEnabled)}
+              className={`text-white hover:bg-white/20 touch-target ${
+                guidesEnabled ? 'bg-white/20' : ''
+              }`}
+              title="Toggle alignment guides"
+            >
+              <Grid3x3 className="w-4 h-4" />
+            </Button>
+
+            {/* Ghost overlay toggle */}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleGhostToggle}
+              className={`text-white hover:bg-white/20 touch-target ${
+                ghostEnabled ? 'bg-white/20' : ''
+              }`}
+              title="Toggle ghost overlay"
+            >
+              <Ghost className="w-4 h-4" />
+            </Button>
+          </div>
+        )}
+
+        {/* Ghost opacity slider */}
+        {ghostEnabled && ghostPhotoId && isActive && (
+          <div className="flex items-center gap-3 max-w-2xl mx-auto">
+            <span className="text-white text-sm whitespace-nowrap">Opacity:</span>
+            <Slider
+              value={[ghostOpacity]}
+              onValueChange={(values) => setGhostOpacity(values[0])}
+              min={0}
+              max={100}
+              step={5}
+              className="flex-1"
+            />
+            <span className="text-white text-sm w-12 text-right">{ghostOpacity}%</span>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowGhostPicker(true)}
+              className="text-white hover:bg-white/20 text-xs"
+            >
+              Change
+            </Button>
+          </div>
+        )}
+
+        {/* Main capture controls */}
         <div className="flex items-center justify-between max-w-2xl mx-auto">
           <Button
             variant="ghost"
@@ -239,21 +411,19 @@ export function CameraCapturePanel({ sessionId, patientId, onClose }: CameraCapt
             <Circle className="w-12 h-12 text-black" fill="currentColor" />
           </Button>
 
-          <Button
-            variant="ghost"
-            size="lg"
-            onClick={() => switchCamera()}
-            disabled={!isActive || isLoading}
-            className="text-white hover:bg-white/10 touch-target-lg"
-          >
-            <RotateCw className="w-6 h-6" />
-          </Button>
+          <div className="w-[100px]" />
         </div>
 
+        {/* Camera flip toggle */}
         {isActive && (
-          <p className="text-center text-white/70 text-sm">
-            {currentFacingMode === 'user' ? 'Front Camera' : 'Back Camera'}
-          </p>
+          <div className="flex justify-center">
+            <CameraFlipToggle
+              currentFacingMode={currentFacingMode}
+              onToggle={handleSwitchCamera}
+              disabled={!isActive || isLoading || isCapturing}
+              isLoading={isSwitching}
+            />
+          </div>
         )}
 
         {!patientId || !sessionId ? (
@@ -262,6 +432,15 @@ export function CameraCapturePanel({ sessionId, patientId, onClose }: CameraCapt
           </p>
         ) : null}
       </div>
+
+      {/* Ghost overlay picker dialog */}
+      <GhostOverlayPickerDialog
+        open={showGhostPicker}
+        onClose={() => setShowGhostPicker(false)}
+        sessionId={sessionId}
+        selectedPhotoId={ghostPhotoId}
+        onSelectPhoto={handleGhostPhotoSelect}
+      />
     </div>
   );
 }

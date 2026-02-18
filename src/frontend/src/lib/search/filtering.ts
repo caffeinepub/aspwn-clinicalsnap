@@ -1,6 +1,7 @@
 // Search and filter utilities
 
 import type { Patient, Session, TreatmentType } from '../models';
+import { getSessionTreatmentIds } from '../models';
 
 export interface SearchFilters {
   query: string;
@@ -23,12 +24,13 @@ export function filterPatients(
       if (!matchesName && !matchesId) return false;
     }
 
-    // Treatment type filter
+    // Treatment type filter - check if any session has any of the selected treatment types
     if (filters.treatmentTypeIds.length > 0) {
       const patientSessions = sessions.filter((s) => s.patientId === patient.id);
-      const hasMatchingTreatment = patientSessions.some((s) =>
-        s.treatmentTypeId && filters.treatmentTypeIds.includes(s.treatmentTypeId)
-      );
+      const hasMatchingTreatment = patientSessions.some((s) => {
+        const sessionTreatmentIds = getSessionTreatmentIds(s);
+        return sessionTreatmentIds.some((id) => filters.treatmentTypeIds.includes(id));
+      });
       if (!hasMatchingTreatment) return false;
     }
 
@@ -50,11 +52,13 @@ export function filterPatients(
 
 export function filterSessions(sessions: Session[], filters: SearchFilters): Session[] {
   return sessions.filter((session) => {
-    // Treatment type filter
+    // Treatment type filter - check if session has any of the selected treatment types
     if (filters.treatmentTypeIds.length > 0) {
-      if (!session.treatmentTypeId || !filters.treatmentTypeIds.includes(session.treatmentTypeId)) {
-        return false;
-      }
+      const sessionTreatmentIds = getSessionTreatmentIds(session);
+      const hasMatchingTreatment = sessionTreatmentIds.some((id) =>
+        filters.treatmentTypeIds.includes(id)
+      );
+      if (!hasMatchingTreatment) return false;
     }
 
     // Date range filter

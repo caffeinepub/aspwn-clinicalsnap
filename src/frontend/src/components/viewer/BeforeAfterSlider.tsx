@@ -1,4 +1,4 @@
-// Swipe-reveal slider for before/after comparison
+// Swipe-reveal slider for before/after comparison with enhanced touch-friendly controls
 
 import { useState, useRef } from 'react';
 
@@ -27,7 +27,17 @@ export function BeforeAfterSlider({ beforeImageUrl, afterImageUrl }: BeforeAfter
   const handlePointerUp = (e: React.PointerEvent) => {
     setIsDragging(false);
     const target = e.currentTarget as HTMLElement;
-    target.releasePointerCapture(e.pointerId);
+    if (target.hasPointerCapture(e.pointerId)) {
+      target.releasePointerCapture(e.pointerId);
+    }
+  };
+
+  const handlePointerCancel = (e: React.PointerEvent) => {
+    setIsDragging(false);
+    const target = e.currentTarget as HTMLElement;
+    if (target.hasPointerCapture(e.pointerId)) {
+      target.releasePointerCapture(e.pointerId);
+    }
   };
 
   const updatePosition = (e: React.PointerEvent) => {
@@ -45,7 +55,7 @@ export function BeforeAfterSlider({ beforeImageUrl, afterImageUrl }: BeforeAfter
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
-      onPointerCancel={handlePointerUp}
+      onPointerCancel={handlePointerCancel}
       style={{ cursor: isDragging ? 'grabbing' : 'grab' }}
     >
       {/* After image (background) */}
@@ -77,15 +87,15 @@ export function BeforeAfterSlider({ beforeImageUrl, afterImageUrl }: BeforeAfter
         </div>
       </div>
 
-      {/* Slider handle */}
+      {/* Slider handle with enhanced touch target */}
       <div
-        className="absolute top-0 bottom-0 w-1 bg-white shadow-lg"
+        className="absolute top-0 bottom-0 w-1 bg-white shadow-lg pointer-events-none"
         style={{ left: `${sliderPosition}%`, transform: 'translateX(-50%)' }}
       >
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-10 h-10 bg-white rounded-full shadow-lg flex items-center justify-center">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 bg-white rounded-full shadow-lg flex items-center justify-center touch-target-xl">
           <div className="flex gap-1">
-            <div className="w-0.5 h-4 bg-gray-600" />
-            <div className="w-0.5 h-4 bg-gray-600" />
+            <div className="w-1 h-6 bg-gray-600 rounded-full" />
+            <div className="w-1 h-6 bg-gray-600 rounded-full" />
           </div>
         </div>
       </div>

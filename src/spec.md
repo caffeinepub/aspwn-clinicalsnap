@@ -1,12 +1,13 @@
 # Specification
 
 ## Summary
-**Goal:** Update branding to “Aspen Clinic Snap” and complete the photo viewing/comparison/annotation workflow for locally stored session photos.
+**Goal:** Improve in-app photo capture consistency and documentation by adding capture alignment aids, clinical view templates, faster annotation stamps, and an on-device branded PDF export.
 
 **Planned changes:**
-- Rename the app everywhere in the UI to “Aspen Clinic Snap” (browser tab title, loading/empty text, header branding alt text, and default clinic name in Settings).
-- Make session photos expandable from the session grid into a full-screen viewer with touch-friendly zoom/pan and a clear close action returning to the session.
-- Add a Before/After comparison view for the current patient/session with a slider (swipe-reveal) mode and English labels/instructions.
-- Expose photo annotation tools (pen, highlight, text) in the photo viewer, with the ability to add/edit/delete annotations and persist/reload them for the same photo.
+- Add a camera capture UI toggle to show/hide alignment guides (e.g., rule-of-thirds grid and center crosshair) as visual-only overlays.
+- Add an optional “ghost overlay” mode in camera capture to select a reference photo from the current session and overlay it with an opacity slider (visual-only; not saved into photos).
+- Add standard clinical view templates (Frontal, Left 45°, Right 45°, Occlusal) selectable during capture, persisted per captured/imported photo, and displayed in the session grid/viewer.
+- Extend the full-screen photo annotation experience with a “Stamps” tool including preset stamps (Arrow, Margin line, Prep line) that can be placed and persisted, with undo/removal via existing quick-correction workflows.
+- Add an “Export to PDF” action for a session that generates a downloadable PDF on-device including clinic branding (name and optional logo from Branding Settings) plus session title/date and session photos in a readable layout.
 
-**User-visible outcome:** The app displays the new “Aspen Clinic Snap” name, users can open any session photo full-screen to zoom/pan and annotate it, and they can compare two photos via a Before/After slider—without uploading photos to any backend.
+**User-visible outcome:** Clinicians can toggle capture guides, align shots using a semi-transparent reference photo, tag photos with standard view labels, add quick stamp annotations, and export a branded session PDF without uploading photos to the backend.
