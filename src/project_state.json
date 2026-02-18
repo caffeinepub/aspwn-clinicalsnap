@@ -1,0 +1,318 @@
+{
+  "schemaVersion": "1.0.0",
+  "projectStateVersion": 9,
+  "summary": "Aspwn ClinicalSnap: an iPad (iOS) clinical photography manager prototype for dental/aesthetic clinics, focused on patient profiles, in-app photo capture with session-based organization, before/after comparisons, tagging, annotation, search, export/sharing, and strong on-device privacy.",
+  "architectural_notes": [
+    "Target platform: iPad (iOS); prototype first (single-screen) with patient list, photo viewer, and before/after comparison.",
+    "UI direction: clean clinical minimal; white + soft teal palette; large touch targets for clinical/glove use; support portrait and landscape.",
+    "Data/privacy constraint: store photos locally on-device only unless user exports; add app-open lock (Face ID/PIN)."
+  ],
+  "known_issues": [
+    "Add Session flow is not working (user reports inability to add a new session).",
+    "Cannot add photos to a session (photo add/capture flow not working).",
+    "Camera is not connecting; user receives \"permission denied\" error (camera permissions issue).",
+    "Annotation tools are missing/not accessible in the current build (user expects draw/highlight/text annotations)."
+  ],
+  "isFixRequest": false,
+  "imageRequirements": "## Required Images\n- Wide wordmark logo reading “Aspen Clinic Snap”, clean clinical style on transparent background (aspen-clinic-snap-logo.dim_1024x256.png)",
+  "existing_features": [
+    {
+      "id": "feature-create-an-ipad-optimized-responsive-single-screen-prototype-ui-that-simultaneously-supports-1-patient-list-2-photo-session-viewer-for-the-selected-patient-and-3-before-after-comparison-view-side-by-side-and-swipe-reveal-modes-the-screen-must-work-in-both-portrait-and-landscape-with-large-glove-friendly-touch-targets",
+      "title": "Create an iPad-optimized, responsive single-screen prototype UI that simultaneously supports: (1) patient list, (2) photo/session viewer for the selected patient, and (3) before/after comparison view (side-by-side and swipe-reveal modes). The screen must work in both portrait and landscape with large, glove-friendly touch targets.",
+      "reqIds": [
+        "REQ-1"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-patient-profile-management-create-edit-and-delete-patients-with-fields-full-name-patient-id-dob-and-freeform-treatment-history-notes-each-patient-must-have-a-dedicated-photo-library-organized-by-visit-session-date",
+      "title": "Implement patient profile management: create, edit, and delete patients with fields: full name, patient ID, DOB, and freeform treatment history notes. Each patient must have a dedicated photo library organized by visit/session date.",
+      "reqIds": [
+        "REQ-2"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-session-based-photo-organization-per-patient-create-and-manage-sessions-e-g-visit-14-feb-2026-with-a-session-date-and-title-photos-belong-to-exactly-one-patient-and-one-session-and-the-ui-must-show-a-chronological-patient-timeline-with-session-groupings-and-thumbnails",
+      "title": "Implement session-based photo organization per patient: create and manage sessions (e.g., \"Visit – 14 Feb 2026\") with a session date and title. Photos belong to exactly one patient and one session, and the UI must show a chronological patient timeline with session groupings and thumbnails.",
+      "reqIds": [
+        "REQ-3"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-an-in-app-camera-capture-experience-for-the-web-prototype-using-the-device-camera-where-supported-that-automatically-assigns-captured-photos-to-the-currently-selected-patient-and-active-session-date-include-a-fast-capture-flow-suitable-for-clinical-use",
+      "title": "Add an in-app camera capture experience for the web prototype using the device camera (where supported) that automatically assigns captured photos to the currently selected patient and active session/date. Include a fast capture flow suitable for clinical use.",
+      "reqIds": [
+        "REQ-4"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-treatment-tagging-with-a-customizable-treatment-list-users-can-add-edit-delete-treatment-types-e-g-veneer-smile-design-ortho-aligners-implants-allow-tagging-at-least-at-the-session-level-and-optionally-per-photo-and-show-the-tag-prominently-in-session-and-before-after-views",
+      "title": "Implement treatment tagging with a customizable treatment list: users can add/edit/delete treatment types (e.g., veneer, smile design, ortho, aligners, implants). Allow tagging at least at the session level (and optionally per photo), and show the tag prominently in session and before/after views.",
+      "reqIds": [
+        "REQ-5"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-photo-annotation-tools-for-the-web-prototype-draw-freehand-pen-highlight-semi-transparent-and-text-notes-on-top-of-a-photo-with-adjustable-sizes-and-colors-annotations-must-be-editable-select-move-delete-where-applicable-and-persist-with-the-photo",
+      "title": "Add photo annotation tools for the web prototype: draw/freehand pen, highlight (semi-transparent), and text notes on top of a photo with adjustable sizes and colors. Annotations must be editable (select/move/delete where applicable) and persist with the photo.",
+      "reqIds": [
+        "REQ-7"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-support-attaching-a-voice-memo-to-any-session-record-playback-replace-and-delete-a-voice-memo-associated-with-a-session",
+      "title": "Support attaching a voice memo to any session: record, playback, replace, and delete a voice memo associated with a session.",
+      "reqIds": [
+        "REQ-8"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-search-and-filtering-across-patients-and-sessions-by-patient-name-treatment-type-and-date-range-filtering-must-update-results-quickly-and-be-usable-with-touch",
+      "title": "Implement search and filtering across patients and sessions by: patient name, treatment type, and date range. Filtering must update results quickly and be usable with touch.",
+      "reqIds": [
+        "REQ-9"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-privacy-security-controls-suitable-for-a-web-prototype-require-a-pin-lock-on-app-open-with-configurable-pin-and-an-auto-lock-timeout-setting-add-an-export-option-to-blur-faces-in-exported-images-cards",
+      "title": "Implement privacy/security controls suitable for a web prototype: require a PIN lock on app open (with configurable PIN) and an auto-lock timeout setting. Add an export option to blur faces in exported images/cards.",
+      "reqIds": [
+        "REQ-11"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-ensure-photos-and-related-clinical-media-are-stored-locally-in-the-browser-only-not-uploaded-to-the-backend-by-default-provide-a-clear-indicator-that-data-is-local-only-and-ensure-all-created-entities-patients-sessions-tags-annotations-voice-memos-pairings-persist-across-reloads-on-the-same-device-browser",
+      "title": "Ensure photos and related clinical media are stored locally in the browser only (not uploaded to the backend by default). Provide a clear indicator that data is local-only, and ensure all created entities (patients, sessions, tags, annotations, voice memos, pairings) persist across reloads on the same device/browser.",
+      "reqIds": [
+        "REQ-12"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-batch-mode-session-mode-capture-workflow-that-allows-rapidly-capturing-bursts-and-assigning-them-to-different-patients-in-sequence-without-leaving-the-camera-experience-the-workflow-must-include-a-fast-patient-switcher-and-confirmation-of-the-current-patient-session-target-before-capture",
+      "title": "Add a \"Batch Mode\" (session mode) capture workflow that allows rapidly capturing bursts and assigning them to different patients in sequence without leaving the camera experience. The workflow must include a fast patient switcher and confirmation of the current patient/session target before capture.",
+      "reqIds": [
+        "REQ-13"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-full-edit-delete-capabilities-for-core-entities-and-media-edit-session-titles-dates-treatment-tags-delete-individual-photos-delete-sessions-with-confirmation-and-handle-cascading-removal-of-associated-pairings-annotations-and-voice-memos-safely",
+      "title": "Implement full edit/delete capabilities for core entities and media: edit session titles/dates/treatment tags; delete individual photos; delete sessions (with confirmation) and handle cascading removal of associated pairings, annotations, and voice memos safely.",
+      "reqIds": [
+        "REQ-14"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-clinic-branding-settings-editable-in-app-clinic-display-name-and-logo-used-on-before-after-cards-and-exports-with-a-preview-of-the-branded-output",
+      "title": "Add clinic branding settings editable in-app: clinic display name and logo used on before/after cards and exports, with a preview of the branded output.",
+      "reqIds": [
+        "REQ-15"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-fix-the-add-session-flow-so-a-user-can-reliably-create-a-new-session-for-the-currently-selected-patient-from-the-timeline-new-session-button-save-it-and-immediately-see-it-appear-in-the-session-timeline",
+      "title": "Fix the Add Session flow so a user can reliably create a new session for the currently selected patient from the timeline (\"New Session\" button), save it, and immediately see it appear in the session timeline.",
+      "reqIds": [
+        "REQ-17"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-fix-the-sessioneditordialog-treatment-type-selector-so-selecting-none-no-treatment-type-works-without-breaking-the-dialog-and-saving-a-session-with-no-treatment-type-is-supported",
+      "title": "Fix the SessionEditorDialog treatment type selector so selecting “None” (no treatment type) works without breaking the dialog, and saving a session with no treatment type is supported.",
+      "reqIds": [
+        "REQ-18"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-user-visible-error-handling-for-session-creation-editing-failures-in-the-sessioneditordialog-so-that-if-a-save-fails-for-any-reason-the-user-sees-an-english-error-message-and-the-dialog-remains-usable-does-not-get-stuck-in-a-loading-state",
+      "title": "Add user-visible error handling for session creation/editing failures in the SessionEditorDialog so that if a save fails for any reason, the user sees an English error message and the dialog remains usable (does not get stuck in a loading state).",
+      "reqIds": [
+        "REQ-19"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-fix-the-in-app-camera-capture-flow-so-that-when-the-browser-device-denies-camera-permission-e-g-notallowederror-permission-denied-the-ui-shows-clear-english-guidance-on-how-to-enable-camera-access-and-provides-a-reliable-recovery-path-retry-and-or-a-user-initiated-start-camera-action-without-leaving-the-app-stuck-in-a-loading-or-broken-state",
+      "title": "Fix the in-app camera capture flow so that when the browser/device denies camera permission (e.g., NotAllowedError / “permission denied”), the UI shows clear English guidance on how to enable camera access and provides a reliable recovery path (retry and/or a user-initiated “Start Camera” action) without leaving the app stuck in a loading or broken state.",
+      "reqIds": [
+        "REQ-20"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-ensure-users-can-add-photos-to-the-currently-selected-patient-session-even-when-the-device-camera-cannot-be-used-by-providing-an-add-photos-import-option-that-attaches-selected-image-files-to-the-active-session-and-persists-them-in-local-storage-indexeddb-the-same-way-as-captured-photos",
+      "title": "Ensure users can add photos to the currently selected patient session even when the device camera cannot be used by providing an “Add Photos” import option that attaches selected image files to the active session and persists them in local storage (IndexedDB) the same way as captured photos.",
+      "reqIds": [
+        "REQ-21"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-fix-any-issues-that-prevent-captured-photos-when-camera-access-is-granted-from-being-saved-and-visible-under-the-correct-session-including-validating-that-capture-is-only-enabled-when-a-valid-patientid-and-sessionid-are-present-and-that-the-photo-grid-updates-immediately-after-save",
+      "title": "Fix any issues that prevent captured photos (when camera access is granted) from being saved and visible under the correct session, including validating that capture is only enabled when a valid patientId and sessionId are present and that the photo grid updates immediately after save.",
+      "reqIds": [
+        "REQ-22"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-rename-the-app-everywhere-in-the-ui-to-aspen-clinic-snap-including-the-browser-tab-title-app-loading-text-header-branding-alt-text-and-the-default-clinic-branding-name-shown-in-settings",
+      "title": "Rename the app everywhere in the UI to “Aspen Clinic Snap”, including the browser tab title, app loading text, header branding alt text, and the default clinic branding name shown in Settings.",
+      "reqIds": [
+        "REQ-23"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-make-any-photo-added-to-a-session-expandable-from-the-session-photo-grid-tapping-view-or-the-thumbnail-opens-a-full-screen-photo-viewer-that-supports-closing-and-returning-to-the-session-with-zoom-and-pan-controls-suitable-for-ipad-touch",
+      "title": "Make any photo added to a session expandable from the session photo grid: tapping “View” or the thumbnail opens a full-screen photo viewer that supports closing and returning to the session, with zoom and pan controls suitable for iPad touch.",
+      "reqIds": [
+        "REQ-24"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-working-before-after-comparison-view-that-includes-a-slider-swipe-reveal-option-for-comparing-two-photos-accessible-from-the-main-single-screen-workflow-patient-session-context",
+      "title": "Add a working Before/After comparison view that includes a slider (swipe-reveal) option for comparing two photos, accessible from the main single-screen workflow (patient/session context).",
+      "reqIds": [
+        "REQ-25"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-expose-the-missing-photo-annotation-tools-in-the-ui-so-a-user-can-add-edit-and-delete-annotations-pen-highlight-and-text-on-top-of-a-photo-and-have-those-annotations-persist-and-reload-with-the-photo",
+      "title": "Expose the missing photo annotation tools in the UI so a user can add, edit, and delete annotations (pen, highlight, and text) on top of a photo and have those annotations persist and reload with the photo.",
+      "reqIds": [
+        "REQ-26"
+      ],
+      "version": 1
+    }
+  ],
+  "new_feature_requests": [
+    {
+      "id": "AR-1",
+      "summary": "Patient profiles with name, ID/DOB, treatment history, and per-patient photo library organized by visit/session date",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-2",
+      "summary": "In-app camera with auto-assignment of captured photos to selected patient and current date session; session grouping (e.g., “Visit – 14 Feb 2026”)",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-3",
+      "summary": "Customizable treatment tagging for sessions/photos (e.g., veneer, smile design, ortho, aligners, implants)",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-4",
+      "summary": "Before/after pairing (manual or auto) with side-by-side card and/or swipe comparison slider; include patient name, treatment, dates, and clinic branding",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-5",
+      "summary": "Patient timeline view showing chronological visits with thumbnails grouped by session",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-6",
+      "summary": "Annotation tools on photos (draw/highlight/text with adjustable sizes/colors) plus voice memo attachment to sessions",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-7",
+      "summary": "Search and filter across patients by name, treatment type, and date range",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-8",
+      "summary": "Export and share branded before/after cards as PDF or image with clinic watermark/logo; one-tap share via email/WhatsApp",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-9",
+      "summary": "Privacy/security: Face ID/PIN lock; optional face blur on exported images; photos stored locally on device unless exported",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-10",
+      "summary": "Batch/session mode to rapidly assign bursts of photos to different patients in sequence without leaving the camera",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-11",
+      "summary": "Editable options throughout the app (e.g., customizable lists/branding/settings)",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-12",
+      "summary": "Photo management: delete photos (and related session cleanup as needed)",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-13",
+      "summary": "Build an initial fully functional single-screen iPad prototype showing patient list, photo viewer, and before/after comparison screen (portrait & landscape; glove-friendly UI)",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-19",
+      "summary": "Implement before/after pairing for photos: allow users to manually pair a \"before\" photo with an \"after\" photo (and optionally provide an auto-pair suggestion flow based on capture order within a session). Display paired results as (a) a side-by-side card and (b) a swipe-reveal comparison slider. The comparison view must display patient name, treatment tag, session/shot dates, and clinic branding.",
+      "reqIds": [
+        "REQ-6"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-23",
+      "summary": "Implement export of before/after cards as a branded image and as a branded PDF. Exports must include a clinic name/logo watermark and the card metadata (patient name, treatment, dates). Provide a share panel that at minimum supports download and can surface share links suitable for email/WhatsApp (where supported by the browser/device).",
+      "reqIds": [
+        "REQ-10"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-29",
+      "summary": "Backend canister: keep a minimal Motoko actor that supports basic health/version info and (optionally) stores non-sensitive, non-photo app metadata/settings only if needed; do not store patient photos in the backend.",
+      "reqIds": [
+        "REQ-16"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-30",
+      "summary": "Make photos added to a session expandable (tap to view full-screen with zoom/pan) from the session photo grid/viewer",
+      "reqIds": [],
+      "status": "pending"
+    }
+  ],
+  "gameProjectType": "none",
+  "projectName": "Aspwn ClinicalSnap",
+  "clarification_mode": "instant",
+  "clarification_rounds": 0
+}

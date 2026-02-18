@@ -1,0 +1,156 @@
+{
+  "kind": "implementation_plan",
+  "version": "1.0",
+  "title": "Aspen Clinic Snap UI rename + photo viewer, before/after slider, and annotations",
+  "requirements": [
+    {
+      "id": "REQ-23",
+      "summary": "Rename UI text and branding references to “Aspen Clinic Snap” and wire in the new wordmark asset.",
+      "acceptanceCriteria": [
+        "Browser tab title shows “Aspen Clinic Snap”.",
+        "Any loading/empty-state text that currently says “ClinicalSnap”/“Aspwn ClinicalSnap” is updated to “Aspen Clinic Snap” (English).",
+        "Header branding no longer shows the old app name in alt text.",
+        "Branding Settings default/placeholder clinic name is updated to “Aspen Clinic Snap” (English)."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/index.html",
+          "operation": "modify",
+          "description": "Update the document <title> to “Aspen Clinic Snap” to satisfy the browser tab title requirement."
+        },
+        {
+          "path": "frontend/src/App.tsx",
+          "operation": "modify",
+          "description": "Update the initialization/loading UI text to “Loading Aspen Clinic Snap...” and replace any remaining old app-name strings shown to users."
+        },
+        {
+          "path": "frontend/src/components/layout/ClinicalSnapShell.tsx",
+          "operation": "modify",
+          "description": "Update header branding to use the generated wordmark at frontend/public/assets/generated/aspen-clinic-snap-logo.dim_1024x256.png and update the image alt text to “Aspen Clinic Snap”."
+        },
+        {
+          "path": "frontend/src/components/settings/BrandingSettingsPanel.tsx",
+          "operation": "modify",
+          "description": "Update the clinic name input placeholder and default/empty preview fallback copy to use “Aspen Clinic Snap” (English), ensuring the Settings branding default reads correctly."
+        },
+        {
+          "path": "frontend/src/lib/storage/migrations.ts",
+          "operation": "modify",
+          "description": "Update first-run default settings branding clinicName to “Aspen Clinic Snap” so new installs show the correct default clinic name."
+        },
+        {
+          "path": "frontend/src/components/settings/AboutLocalOnlyNote.tsx",
+          "operation": "modify",
+          "description": "Replace “Aspwn ClinicalSnap” occurrences (header/title/footer) with “Aspen Clinic Snap” to ensure About text is in English and reflects the new app name."
+        },
+        {
+          "path": "frontend/public/assets/generated/aspen-clinic-snap-logo.dim_1024x256.png",
+          "operation": "create",
+          "description": "Add the required generated wordmark logo asset (transparent background) and ensure UI references point to this exact file path/filename."
+        }
+      ]
+    },
+    {
+      "id": "REQ-24",
+      "summary": "Add a full-screen photo viewer launched from the session photo grid with touch-friendly zoom/pan and a clear close action, keeping photos local-only.",
+      "acceptanceCriteria": [
+        "From a session’s photo thumbnail grid, tapping a photo opens a full-screen viewer for that photo.",
+        "The full-screen viewer supports pinch-to-zoom and panning (or equivalent touch-friendly zoom/pan controls).",
+        "The viewer has a clear close action that returns the user to the same session context.",
+        "No changes introduce uploading photos to the backend; photos remain local-only."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/photos/PhotoThumbnailGrid.tsx",
+          "operation": "modify",
+          "description": "Ensure both thumbnail tap and the “View” menu action open the full-screen viewer by selecting the photo and triggering the viewer UI (no backend changes; local-only)."
+        },
+        {
+          "path": "frontend/src/components/photos/PhotoViewerOverlay.tsx",
+          "operation": "create",
+          "description": "Create a full-screen photo viewer overlay component that reads selectedPhotoId from the app store, renders the full-resolution image, provides a clear Close action, and integrates touch-friendly zoom/pan controls (pinch/pan or equivalent). Use existing shadcn-ui primitives (e.g., dialog/sheet/buttons) by composing them (do not modify frontend/src/components/ui). Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/hooks/usePanZoom.ts",
+          "operation": "create",
+          "description": "Add a reusable hook to implement touch-friendly zoom/pan (pointer events multi-touch + mouse wheel) suitable for iPad, used by the photo viewer to manage transforms and reset behavior."
+        },
+        {
+          "path": "frontend/src/components/layout/ClinicalSnapShell.tsx",
+          "operation": "modify",
+          "description": "Wire PhotoViewerOverlay into the main shell so it can open above the session workflow and close back to the same context without navigation."
+        }
+      ]
+    },
+    {
+      "id": "REQ-25",
+      "summary": "Provide a Before/After comparison view in the main patient/session workflow, including a slider-based swipe-reveal comparison mode using locally stored photos.",
+      "acceptanceCriteria": [
+        "The UI provides a Before/After comparison view for the selected patient/session context.",
+        "The comparison view includes a slider-based swipe-reveal mode that lets the user drag to reveal before vs after.",
+        "User-facing labels and instructions for the comparison UI are in English.",
+        "No backend storage of photos is added; comparison uses locally stored session photos."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/viewer/BeforeAfterCompareDialog.tsx",
+          "operation": "create",
+          "description": "Create a comparison dialog/sheet for the current session context that lets users pick a Before photo and an After photo from locally stored session photos, and provides a slider-based swipe-reveal mode with English labels/instructions. Compose shadcn-ui components (do not modify frontend/src/components/ui). Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/components/viewer/BeforeAfterSlider.tsx",
+          "operation": "create",
+          "description": "Implement the swipe-reveal slider UI (drag handle to reveal before vs after) with touch-friendly dragging, designed for iPad. Keep logic frontend-only and based on existing locally stored photos."
+        },
+        {
+          "path": "frontend/src/components/viewer/SessionTimelinePanel.tsx",
+          "operation": "modify",
+          "description": "Add an entry point in the session UI (e.g., a Compare button per session when enough photos exist) to open the BeforeAfterCompareDialog for that session, keeping it within the single-screen workflow and in English."
+        },
+        {
+          "path": "frontend/src/lib/state/useAppStore.ts",
+          "operation": "modify",
+          "description": "If needed for the comparison UX, add minimal UI state helpers for opening/closing the comparison dialog and/or setting the active pairing selection while continuing to rely on local IndexedDB-backed data only (no backend storage)."
+        }
+      ]
+    },
+    {
+      "id": "REQ-26",
+      "summary": "Expose photo annotation tools (pen, highlight, text) in the photo viewing UI with edit/delete and persistence via local storage.",
+      "acceptanceCriteria": [
+        "When viewing a photo (including in the expanded full-screen photo viewer), the user can open annotation tools.",
+        "Annotation tools include: pen/freehand, highlight (semi-transparent), and text notes.",
+        "Annotations can be edited and/or removed after being created (where applicable).",
+        "Annotations persist after page reload and re-open correctly on the same photo.",
+        "All annotation UI text is English."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/photos/PhotoAnnotationToolbar.tsx",
+          "operation": "create",
+          "description": "Create an annotation toolbar for pen, highlight, and text modes with English labels and controls for color/size, plus actions for delete/clear/undo as applicable. Compose shadcn-ui components (do not modify frontend/src/components/ui). Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/components/photos/PhotoAnnotationCanvas.tsx",
+          "operation": "create",
+          "description": "Create a canvas/overlay layer that renders existing annotations for the current photo and supports creating new pen/highlight strokes and placing/editing text annotations using pointer/touch events; store annotation geometry in normalized coordinates so it reloads correctly across sizes."
+        },
+        {
+          "path": "frontend/src/components/photos/PhotoViewerOverlay.tsx",
+          "operation": "modify",
+          "description": "Integrate the annotation UI into the full-screen photo viewer: add an “Annotate” toggle/button, display the annotation overlay on top of the photo, and ensure close returns to session context while keeping selected photo/annotations consistent."
+        },
+        {
+          "path": "frontend/src/lib/state/useAppStore.ts",
+          "operation": "modify",
+          "description": "Ensure the annotation UI can create/update/delete annotations via existing Zustand actions and that any missing helper selectors (e.g., get annotations by photoId) are added without changing persistence semantics (IndexedDB local-only)."
+        },
+        {
+          "path": "frontend/src/lib/models.ts",
+          "operation": "modify",
+          "description": "If required by the UI implementation, adjust or extend annotation typing minimally (without breaking stored data) to support editing behaviors (e.g., text edit/move metadata) while keeping types pen/highlight/text and local persistence."
+        }
+      ]
+    }
+  ]
+}

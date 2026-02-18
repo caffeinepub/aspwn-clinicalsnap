@@ -1,0 +1,112 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+    :root {
+        --radius: 0.75rem;
+        /* Clinical white + soft teal palette */
+        --background: 1 0 0; /* Pure white */
+        --foreground: 0.2 0.01 200; /* Deep blue-gray */
+        --card: 0.99 0 0;
+        --card-foreground: 0.2 0.01 200;
+        --popover: 1 0 0;
+        --popover-foreground: 0.2 0.01 200;
+        /* Soft teal primary */
+        --primary: 0.65 0.08 190; /* Soft teal */
+        --primary-foreground: 1 0 0;
+        /* Muted teal secondary */
+        --secondary: 0.95 0.02 190;
+        --secondary-foreground: 0.3 0.04 190;
+        --muted: 0.96 0.01 190;
+        --muted-foreground: 0.5 0.02 200;
+        --accent: 0.92 0.03 190;
+        --accent-foreground: 0.3 0.04 190;
+        --destructive: 0.55 0.22 25;
+        --destructive-foreground: 1 0 0;
+        --border: 0.9 0.01 190;
+        --input: 0.92 0.01 190;
+        --ring: 0.65 0.08 190;
+        /* Clinical success green */
+        --success: 0.7 0.12 150;
+        --success-foreground: 1 0 0;
+        /* Warning amber */
+        --warning: 0.75 0.15 70;
+        --warning-foreground: 0.2 0.01 200;
+    }
+
+    .dark {
+        --background: 0.15 0.01 200;
+        --foreground: 0.98 0 0;
+        --card: 0.2 0.01 200;
+        --card-foreground: 0.98 0 0;
+        --popover: 0.18 0.01 200;
+        --popover-foreground: 0.98 0 0;
+        --primary: 0.7 0.1 190;
+        --primary-foreground: 0.15 0.01 200;
+        --secondary: 0.25 0.02 190;
+        --secondary-foreground: 0.95 0.02 190;
+        --muted: 0.25 0.02 190;
+        --muted-foreground: 0.65 0.02 200;
+        --accent: 0.3 0.04 190;
+        --accent-foreground: 0.95 0.02 190;
+        --destructive: 0.6 0.2 25;
+        --destructive-foreground: 0.98 0 0;
+        --border: 0.3 0.02 190;
+        --input: 0.3 0.02 190;
+        --ring: 0.7 0.1 190;
+        --success: 0.65 0.1 150;
+        --success-foreground: 0.98 0 0;
+        --warning: 0.7 0.13 70;
+        --warning-foreground: 0.15 0.01 200;
+    }
+
+    * {
+        @apply border-border;
+    }
+    
+    body {
+        @apply bg-background text-foreground;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+    }
+}
+
+@layer utilities {
+    /* Large touch targets for clinical/glove use */
+    .touch-target {
+        @apply min-h-[48px] min-w-[48px];
+    }
+    
+    .touch-target-lg {
+        @apply min-h-[56px] min-w-[56px];
+    }
+    
+    /* Clinical spacing */
+    .clinical-spacing {
+        @apply space-y-4;
+    }
+    
+    /* Smooth transitions */
+    .smooth-transition {
+        @apply transition-all duration-200 ease-in-out;
+    }
+}
+
+/* Custom scrollbar for clinical aesthetic */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: oklch(var(--muted));
+}
+
+::-webkit-scrollbar-thumb {
+    background: oklch(var(--primary) / 0.3);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: oklch(var(--primary) / 0.5);
+}

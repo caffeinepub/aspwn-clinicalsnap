@@ -1,0 +1,111 @@
+{
+  "kind": "build_request",
+  "title": "Rename app to Aspen Clinic Snap and add missing photo expand, before/after slider, and annotations UI",
+  "projectName": "Aspen Clinic Snap",
+  "priority": "normal",
+  "requirements": [
+    {
+      "id": "REQ-23",
+      "text": "Rename the app everywhere in the UI to “Aspen Clinic Snap”, including the browser tab title, app loading text, header branding alt text, and the default clinic branding name shown in Settings.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-4"
+        ],
+        "quotes": [
+          "First please change name to Aspen Clinic Snap."
+        ]
+      },
+      "acceptanceCriteria": [
+        "Browser tab title shows “Aspen Clinic Snap”.",
+        "Any loading/empty-state text that currently says “ClinicalSnap”/“Aspwn ClinicalSnap” is updated to “Aspen Clinic Snap” (English).",
+        "Header branding no longer shows the old app name in alt text.",
+        "Branding Settings default/placeholder clinic name is updated to “Aspen Clinic Snap” (English)."
+      ]
+    },
+    {
+      "id": "REQ-24",
+      "text": "Make any photo added to a session expandable from the session photo grid: tapping “View” or the thumbnail opens a full-screen photo viewer that supports closing and returning to the session, with zoom and pan controls suitable for iPad touch.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-4"
+        ],
+        "quotes": [
+          "Next make sure the photo we add to a session is expandable."
+        ]
+      },
+      "acceptanceCriteria": [
+        "From a session’s photo thumbnail grid, tapping a photo opens a full-screen viewer for that photo.",
+        "The full-screen viewer supports pinch-to-zoom and panning (or equivalent touch-friendly zoom/pan controls).",
+        "The viewer has a clear close action that returns the user to the same session context.",
+        "No changes introduce uploading photos to the backend; photos remain local-only."
+      ]
+    },
+    {
+      "id": "REQ-25",
+      "text": "Add a working Before/After comparison view that includes a slider (swipe-reveal) option for comparing two photos, accessible from the main single-screen workflow (patient/session context).",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-4"
+        ],
+        "quotes": [
+          "Next please add the before and after views with a slider option."
+        ]
+      },
+      "acceptanceCriteria": [
+        "The UI provides a Before/After comparison view for the selected patient/session context.",
+        "The comparison view includes a slider-based swipe-reveal mode that lets the user drag to reveal before vs after.",
+        "User-facing labels and instructions for the comparison UI are in English.",
+        "No backend storage of photos is added; comparison uses locally stored session photos."
+      ]
+    },
+    {
+      "id": "REQ-26",
+      "text": "Expose the missing photo annotation tools in the UI so a user can add, edit, and delete annotations (pen, highlight, and text) on top of a photo and have those annotations persist and reload with the photo.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-4"
+        ],
+        "quotes": [
+          "The Annotation part is missing aswell."
+        ]
+      },
+      "acceptanceCriteria": [
+        "When viewing a photo (including in the expanded full-screen photo viewer), the user can open annotation tools.",
+        "Annotation tools include: pen/freehand, highlight (semi-transparent), and text notes.",
+        "Annotations can be edited and/or removed after being created (where applicable).",
+        "Annotations persist after page reload and re-open correctly on the same photo.",
+        "All annotation UI text is English."
+      ]
+    }
+  ],
+  "constraints": [
+    "Frontend must not modify files under frontend/src/components/ui (compose them instead).",
+    "Do not modify files listed as immutable in SYSTEM_CONTEXT.",
+    "Keep photos and clinical media stored locally in the browser only; do not upload photos to the backend."
+  ],
+  "nonGoals": [
+    "Implementing new backend features beyond the existing minimal health/version actor.",
+    "Adding third-party authentication providers (only Internet Identity is supported).",
+    "Adding real-time collaboration or syncing across devices."
+  ],
+  "imageRequirements": {
+    "required": [
+      "Wide wordmark logo reading “Aspen Clinic Snap”, clean clinical style on transparent background (aspen-clinic-snap-logo.dim_1024x256.png)"
+    ],
+    "edits": []
+  },
+  "userProfileUpdate": {
+    "goalsToAdd": [],
+    "goalsToRemove": [],
+    "preferencesToAdd": [],
+    "preferencesToRemove": [],
+    "miscToAdd": [],
+    "miscToRemove": [],
+    "fieldsToSet": {},
+    "fieldsToDelete": []
+  }
+}
